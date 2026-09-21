@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 // GitHub Pages serve o projeto em /<nome-do-repositório>/; em dev a base é a raiz.
 export default defineConfig(({ command }) => ({
@@ -10,5 +10,10 @@ export default defineConfig(({ command }) => ({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 }));
