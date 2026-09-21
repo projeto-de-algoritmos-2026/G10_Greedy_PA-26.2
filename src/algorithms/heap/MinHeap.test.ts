@@ -184,4 +184,50 @@ describe('MinHeap', () => {
       expect(drain(heap)).toEqual([9, 4, 2]);
     });
   });
+
+  describe('desempate determinístico', () => {
+    type Node = { weight: number; id: string };
+    const byWeight = (a: Node, b: Node) => a.weight - b.weight;
+
+    it('elementos empatados saem na ordem de inserção', () => {
+      const heap = new MinHeap(byWeight);
+      ['a', 'b', 'c', 'd', 'e'].forEach((id) => heap.push({ weight: 1, id }));
+
+      expect(drain(heap).map((node) => node.id)).toEqual(['a', 'b', 'c', 'd', 'e']);
+    });
+
+    it('elementos empatados da coleção inicial saem na ordem de iteração', () => {
+      const nodes = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => ({ weight: 2, id }));
+      const heap = new MinHeap(byWeight, nodes);
+
+      expect(drain(heap).map((node) => node.id)).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g']);
+    });
+
+    it('empates só são desfeitos entre elementos de mesmo peso', () => {
+      const heap = new MinHeap(byWeight, [
+        { weight: 2, id: 'x1' },
+        { weight: 1, id: 'y1' },
+        { weight: 2, id: 'x2' },
+        { weight: 1, id: 'y2' },
+      ]);
+      heap.push({ weight: 1, id: 'y3' });
+
+      expect(drain(heap).map((node) => node.id)).toEqual(['y1', 'y2', 'y3', 'x1', 'x2']);
+    });
+
+    it('a saída é idêntica em execuções repetidas com a mesma entrada', () => {
+      const random = seededRandom(99);
+      const nodes = Array.from({ length: 200 }, (_, i) => ({
+        weight: Math.floor(random() * 5),
+        id: `n${i}`,
+      }));
+
+      const first = drain(new MinHeap(byWeight, nodes)).map((node) => node.id);
+      const second = drain(new MinHeap(byWeight, nodes)).map((node) => node.id);
+
+      expect(second).toEqual(first);
+      const expected = [...nodes].sort((a, b) => a.weight - b.weight).map((node) => node.id);
+      expect(first).toEqual(expected);
+    });
+  });
 });

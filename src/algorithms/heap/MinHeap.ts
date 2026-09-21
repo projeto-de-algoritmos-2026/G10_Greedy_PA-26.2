@@ -9,11 +9,24 @@ export class EmptyHeapError extends Error {
   }
 }
 
+/** Elemento armazenado junto de sua posição de chegada, usada para desempatar. */
+interface Entry<T> {
+  readonly value: T;
+  readonly order: number;
+}
+
 /**
  * Fila de prioridade mínima implementada como heap binária em vetor.
  *
  * O nó `i` tem filhos em `2i + 1` e `2i + 2` e pai em `⌊(i - 1) / 2⌋`. Invariante: nenhum
- * filho precede o pai segundo o comparador, então o mínimo fica sempre na raiz.
+ * filho precede o pai, então o mínimo fica sempre na raiz.
+ *
+ * **Desempate determinístico.** Uma heap binária não é estável: elementos que o comparador
+ * considera iguais poderiam sair em qualquer ordem. Para que a construção da árvore de
+ * Huffman seja reproduzível, cada elemento recebe um número de chegada (a ordem de iteração
+ * da coleção inicial, depois a ordem dos `push`) e, quando o comparador retorna zero, sai
+ * primeiro quem chegou antes (FIFO entre iguais). O resultado depende só da sequência de
+ * operações, nunca do layout interno do vetor.
  *
  * Complexidade, com `n` elementos:
  *
@@ -24,44 +37,44 @@ export class EmptyHeapError extends Error {
  * | `pop`                     | O(log n)   |
  * | construção de `n` itens   | O(n)       |
  *
- * O espaço auxiliar é O(1) além do vetor de elementos.
+ * O número de chegada custa O(1) por elemento; o espaço é O(n).
  */
 export class MinHeap<T> {
-  private readonly items: T[];
+  private readonly entries: Entry<T>[];
+  private nextOrder = 0;
 
   /**
-   * @param compare ordem entre elementos; é chamado apenas com elementos já armazenados ou
-   *   sendo inseridos.
-   * @param initial elementos iniciais. A heap é construída pelo método de Floyd (sift-down
-   *   de baixo para cima), em O(n), em vez de `n` inserções em O(n log n). A coleção
-   *   original não é modificada.
+   * @param compare ordem entre elementos; empates são resolvidos pela ordem de chegada.
+   * @param initial elementos iniciais, numerados na ordem de iteração. A heap é construída
+   *   pelo método de Floyd (sift-down de baixo para cima), em O(n), em vez de `n` inserções
+   *   em O(n log n). A coleção original não é modificada.
    */
   constructor(
     private readonly compare: Comparator<T>,
     initial: Iterable<T> = [],
   ) {
-    this.items = Array.from(initial);
-    for (let index = (this.items.length >> 1) - 1; index >= 0; index--) this.siftDown(index);
+    this.entries = Array.from(initial, (value) => this.wrap(value));
+    for (let index = (this.entries.length >> 1) - 1; index >= 0; index--) this.siftDown(index);
   }
 
   get size(): number {
-    return this.items.length;
+    return this.entries.length;
   }
 
   isEmpty(): boolean {
-    return this.items.length === 0;
+    return this.entries.length === 0;
   }
 
   /** Insere `item`. O(log n): entra como folha e sobe até respeitar a invariante. */
   push(item: T): void {
-    this.items.push(item);
-    this.siftUp(this.items.length - 1);
+    this.entries.push(this.wrap(item));
+    this.siftUp(this.entries.length - 1);
   }
 
   /** Devolve o mínimo sem removê-lo. O(1). @throws {EmptyHeapError} se a heap estiver vazia. */
   peek(): T {
     if (this.isEmpty()) throw new EmptyHeapError();
-    return this.item(0);
+    return this.entry(0).value;
   }
 
   /**
@@ -70,53 +83,62 @@ export class MinHeap<T> {
    */
   pop(): T {
     const top = this.peek();
-    const lastIndex = this.items.length - 1;
+    const lastIndex = this.entries.length - 1;
     if (lastIndex > 0) {
-      this.items[0] = this.item(lastIndex);
-      this.items.length = lastIndex;
+      this.entries[0] = this.entry(lastIndex);
+      this.entries.length = lastIndex;
       this.siftDown(0);
     } else {
-      this.items.length = 0;
+      this.entries.length = 0;
     }
     return top;
   }
 
-  private item(index: number): T {
-    if (index < 0 || index >= this.items.length)
-      throw new RangeError(`Índice ${index} fora da heap.`);
-    // Índice validado acima; o teste por `undefined` erraria para T que admite `undefined`.
-    return this.items[index]!;
+  private wrap(value: T): Entry<T> {
+    return { value, order: this.nextOrder++ };
+  }
+
+  private entry(index: number): Entry<T> {
+    const entry = this.entries[index];
+    if (entry === undefined) throw new RangeError(`Índice ${index} fora da heap.`);
+    return entry;
+  }
+
+  /** Ordem total: comparador primeiro, chegada como desempate. */
+  private precedes(a: Entry<T>, b: Entry<T>): boolean {
+    const order = this.compare(a.value, b.value);
+    return order < 0 || (order === 0 && a.order < b.order);
   }
 
   private siftUp(index: number): void {
-    const moving = this.item(index);
+    const moving = this.entry(index);
     while (index > 0) {
       const parentIndex = (index - 1) >> 1;
-      const parent = this.item(parentIndex);
-      if (this.compare(moving, parent) >= 0) break;
-      this.items[index] = parent;
+      const parent = this.entry(parentIndex);
+      if (!this.precedes(moving, parent)) break;
+      this.entries[index] = parent;
       index = parentIndex;
     }
-    this.items[index] = moving;
+    this.entries[index] = moving;
   }
 
   private siftDown(index: number): void {
-    const moving = this.item(index);
-    const firstLeaf = this.items.length >> 1;
+    const moving = this.entry(index);
+    const firstLeaf = this.entries.length >> 1;
     while (index < firstLeaf) {
       let childIndex = 2 * index + 1;
-      let child = this.item(childIndex);
-      if (childIndex + 1 < this.items.length) {
-        const right = this.item(childIndex + 1);
-        if (this.compare(right, child) < 0) {
+      let child = this.entry(childIndex);
+      if (childIndex + 1 < this.entries.length) {
+        const right = this.entry(childIndex + 1);
+        if (this.precedes(right, child)) {
           childIndex += 1;
           child = right;
         }
       }
-      if (this.compare(child, moving) >= 0) break;
-      this.items[index] = child;
+      if (!this.precedes(child, moving)) break;
+      this.entries[index] = child;
       index = childIndex;
     }
-    this.items[index] = moving;
+    this.entries[index] = moving;
   }
 }
