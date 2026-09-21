@@ -119,18 +119,20 @@ estão em [docs/estrutura-do-projeto.md](docs/estrutura-do-projeto.md).
 
 ## Execução local
 
-Após a inicialização da base React/Vite:
+Requer Node 22 (`.nvmrc`):
 
 ```bash
 npm install
 npm run dev
 ```
 
-Verificações previstas:
+Verificações:
 
 ```bash
 npm run test
 npm run lint
+npm run typecheck
+npm run format:check
 npm run build
 ```
 
