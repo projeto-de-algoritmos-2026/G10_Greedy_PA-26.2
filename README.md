@@ -21,6 +21,7 @@ está prevista para **5 de outubro de 2026**.
 - [Milestones](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/milestones)
 - [Estrutura e arquitetura do projeto](docs/estrutura-do-projeto.md)
 - [Formato binário Huffman](docs/formato-huffman.md)
+- [Escalonamento EDD e métricas de atraso](docs/escalonamento-edd.md)
 
 ## Problema
 
