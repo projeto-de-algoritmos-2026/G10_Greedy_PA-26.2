@@ -1,18 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { createSeededRandom, randomInteger } from '../../test/random';
 import { EmptyHeapError, MinHeap } from './MinHeap';
 
 const ascending = (a: number, b: number) => a - b;
-
-/** PRNG determinístico (mulberry32) para que os testes aleatórios sejam reproduzíveis. */
-function seededRandom(seed: number): () => number {
-  let state = seed;
-  return () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 function drain<T>(heap: MinHeap<T>): T[] {
   const result: T[] = [];
@@ -62,6 +52,16 @@ describe('MinHeap', () => {
       expect(heap.peek()).toBe(5);
     });
 
+    it('insere e extrai corretamente um único elemento', () => {
+      const heap = new MinHeap(ascending);
+
+      heap.push(-7);
+
+      expect(heap.peek()).toBe(-7);
+      expect(heap.pop()).toBe(-7);
+      expect(heap.isEmpty()).toBe(true);
+    });
+
     it('mantém o mínimo na raiz quando um novo mínimo é inserido', () => {
       const heap = new MinHeap(ascending, [4, 6]);
       heap.push(1);
@@ -69,26 +69,27 @@ describe('MinHeap', () => {
       expect(heap.peek()).toBe(1);
     });
 
-    it('extração repetida produz sequência não decrescente', () => {
-      const random = seededRandom(42);
-      const heap = new MinHeap(ascending);
-      for (let i = 0; i < 1000; i++) heap.push(Math.floor(random() * 200));
+    it.each([
+      { seed: 1, size: 1 },
+      { seed: 42, size: 32 },
+      { seed: 2_026_0925, size: 1000 },
+    ])('extração repetida ordena $size valores pseudoaleatórios (seed $seed)', ({ seed, size }) => {
+      const random = createSeededRandom(seed);
+      const values = Array.from({ length: size }, () => randomInteger(random, 401) - 200);
+      const heap = new MinHeap(ascending, values);
 
-      const extracted = drain(heap);
-
-      expect(extracted).toHaveLength(1000);
-      expect(extracted).toEqual([...extracted].sort(ascending));
+      expect(drain(heap)).toEqual([...values].sort(ascending));
     });
 
     it('preserva a propriedade da heap em operações intercaladas (modelo de referência)', () => {
       for (const seed of [1, 2, 3, 4, 5]) {
-        const random = seededRandom(seed);
+        const random = createSeededRandom(seed);
         const heap = new MinHeap(ascending);
         const model: number[] = [];
 
         for (let step = 0; step < 500; step++) {
           if (model.length === 0 || random() < 0.6) {
-            const value = Math.floor(random() * 50);
+            const value = randomInteger(random, 50) - 25;
             heap.push(value);
             model.push(value);
             model.sort(ascending);
@@ -145,8 +146,8 @@ describe('MinHeap', () => {
     });
 
     it('equivale a inserir os elementos um a um', () => {
-      const random = seededRandom(7);
-      const values = Array.from({ length: 300 }, () => Math.floor(random() * 100));
+      const random = createSeededRandom(7);
+      const values = Array.from({ length: 300 }, () => randomInteger(random, 100));
       const pushed = new MinHeap(ascending);
       values.forEach((value) => pushed.push(value));
 
@@ -216,9 +217,9 @@ describe('MinHeap', () => {
     });
 
     it('a saída é idêntica em execuções repetidas com a mesma entrada', () => {
-      const random = seededRandom(99);
+      const random = createSeededRandom(99);
       const nodes = Array.from({ length: 200 }, (_, i) => ({
-        weight: Math.floor(random() * 5),
+        weight: randomInteger(random, 5),
         id: `n${i}`,
       }));
 
