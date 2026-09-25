@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it } from 'vitest';
 import { packCodes, readBits, validatePackedBitstream } from './bitstream';
 import type { HuffmanCodeTable } from './types';

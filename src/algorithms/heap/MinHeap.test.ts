@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it } from 'vitest';
 import { createSeededRandom, randomInteger } from '../../test/random';
 import { EmptyHeapError, MinHeap } from './MinHeap';

@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it } from 'vitest';
 import { generateByteCorpus } from '../../test/random';
 import type { ByteDistribution } from '../../test/random';
