@@ -1,4 +1,8 @@
+// @vitest-environment node
+
 import { describe, expect, it } from 'vitest';
+import { generateByteCorpus } from '../../test/random';
+import type { ByteDistribution } from '../../test/random';
 import { buildHuffmanTree } from './buildTree';
 import { decode, encode } from './codec';
 import { InvalidHuffmanTreeError } from './errors';
@@ -8,6 +12,52 @@ import type { EncodedHuffmanData, HuffmanInternalNode, HuffmanLeaf } from './typ
 const HEADER_PAYLOAD_BITS_LAST_BYTE = 11;
 const HEADER_PADDING_OFFSET = 12;
 const HEADER_TREE_OFFSET = 13;
+
+interface RoundTripCase {
+  readonly name: string;
+  readonly alphabet: readonly number[];
+  readonly length: number;
+  readonly distribution: ByteDistribution;
+  readonly seed: number;
+}
+
+const roundTripCases: readonly RoundTripCase[] = [
+  {
+    name: 'binário uniforme',
+    alphabet: [0, 255],
+    length: 257,
+    distribution: 'uniform',
+    seed: 101,
+  },
+  {
+    name: 'alfabeto esparso',
+    alphabet: [3, 17, 99, 200, 255],
+    length: 513,
+    distribution: 'uniform',
+    seed: 102,
+  },
+  {
+    name: 'frequências empatadas',
+    alphabet: Array.from({ length: 16 }, (_, index) => index * 17),
+    length: 1024,
+    distribution: 'tied',
+    seed: 103,
+  },
+  {
+    name: 'distribuição enviesada',
+    alphabet: [0, 1, 2, 3, 127, 128, 254, 255],
+    length: 1024,
+    distribution: 'skewed',
+    seed: 104,
+  },
+  {
+    name: 'alfabeto completo',
+    alphabet: Array.from({ length: 256 }, (_, symbol) => symbol),
+    length: 2048,
+    distribution: 'uniform',
+    seed: 105,
+  },
+];
 
 interface MutableEncodedData {
   header: Uint8Array;
@@ -90,18 +140,14 @@ describe('codec Huffman', () => {
     expect(decode(encode(data))).toEqual(data);
   });
 
-  it('mantém o round-trip em sequências pseudoaleatórias reproduzíveis', () => {
-    let state = 0x1234_5678;
-    const randomByte = (): number => {
-      state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
-      return state & 0xff;
-    };
+  it.each(roundTripCases)(
+    'mantém o round-trip para $name',
+    ({ alphabet, length, distribution, seed }) => {
+      const data = generateByteCorpus({ alphabet, length, distribution, seed });
 
-    for (const length of [1, 2, 7, 64, 513]) {
-      const data = Uint8Array.from({ length }, randomByte);
       expect(decode(encode(data))).toEqual(data);
-    }
-  });
+    },
+  );
 
   it('aceita uma árvore compartilhada construída para um buffer maior', () => {
     const corpus = Uint8Array.of(0, 0, 0, 1, 1, 2);

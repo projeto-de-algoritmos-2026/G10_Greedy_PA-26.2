@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { describe, expect, it } from 'vitest';
 import {
   earliestDueDateOrder,
@@ -104,6 +106,27 @@ describe('scheduleInGivenOrder', () => {
 });
 
 describe('scheduleEarliestDueDate', () => {
+  it('trata conjuntos vazio e unitário', () => {
+    expect(scheduleEarliestDueDate([])).toEqual({
+      packets: [],
+      maxLateness: 0,
+      totalCompletionTime: 0,
+    });
+
+    const singleton = scheduleEarliestDueDate([packet('only', 4, 3)]);
+    expect(singleton.packets).toEqual([
+      {
+        id: 'only',
+        processingTime: 4,
+        dueDate: 3,
+        startTime: 0,
+        completionTime: 4,
+        lateness: 1,
+      },
+    ]);
+    expect(singleton.maxLateness).toBe(1);
+  });
+
   it('agenda os pacotes na ordem EDD e calcula o cronograma resultante', () => {
     const packets = [packet('late', 2, 10), packet('urgent', 3, 4)];
 
@@ -124,12 +147,15 @@ describe('scheduleEarliestDueDate', () => {
       packet('p6', 3, 9),
     ];
 
+    const orders = permutations(packets);
+    const distinctOrders = new Set(orders.map((order) => order.map(({ id }) => id).join(',')));
     const eddMaxLateness = scheduleEarliestDueDate(packets).maxLateness;
-    const bestPossible = Math.min(
-      ...permutations(packets).map((order) => scheduleInGivenOrder(order).maxLateness),
-    );
+    const candidateMaxLatenesses = orders.map((order) => scheduleInGivenOrder(order).maxLateness);
 
-    expect(eddMaxLateness).toBe(bestPossible);
+    expect(orders).toHaveLength(720);
+    expect(distinctOrders.size).toBe(720);
+    expect(candidateMaxLatenesses.every((lateness) => lateness >= eddMaxLateness)).toBe(true);
+    expect(eddMaxLateness).toBe(Math.min(...candidateMaxLatenesses));
   });
 });
 

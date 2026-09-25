@@ -1,6 +1,9 @@
-import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
-// Sem `globals: true` o Testing Library não registra o cleanup sozinho.
-afterEach(cleanup);
+if (typeof document !== 'undefined') {
+  const { cleanup } = await import('@testing-library/react');
+  await import('@testing-library/jest-dom/vitest');
+
+  // Sem `globals: true` o Testing Library não registra o cleanup sozinho.
+  afterEach(cleanup);
+}
