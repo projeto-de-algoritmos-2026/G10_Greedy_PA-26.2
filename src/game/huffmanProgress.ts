@@ -34,16 +34,17 @@ function createInitialNodes(frequencies: FrequencyTable): ActiveNode[] {
     }));
 }
 
-function greedyPair(activeNodes: ReadonlyMap<string, ActiveNode>): readonly [string, string] {
-  const sorted = [...activeNodes.values()].sort(
-    (a, b) => a.node.weight - b.node.weight || a.insertionOrder - b.insertionOrder,
-  );
-  const first = sorted[0];
-  const second = sorted[1];
-  if (first === undefined || second === undefined) {
-    throw new InvalidGameStateError('Não há dois nós ativos para realizar uma fusão.');
-  }
-  return [first.node.id, second.node.id];
+/** Escolha gulosa = qualquer par com os dois menores pesos; empates de peso são equivalentes. */
+function isGreedyChoice(
+  activeNodes: ReadonlyMap<string, ActiveNode>,
+  first: HuffmanNode,
+  second: HuffmanNode,
+): boolean {
+  const [smallest, secondSmallest] = [...activeNodes.values()]
+    .map((entry) => entry.node.weight)
+    .sort((a, b) => a - b);
+  const [low, high] = [first.weight, second.weight].sort((a, b) => a - b);
+  return low === smallest && high === secondSmallest;
 }
 
 /** Reconstrói árvore e histórico sem armazenar nós derivados no estado do jogo. */
@@ -66,11 +67,7 @@ export function replayHuffmanMerges(
       throw new InvalidGameStateError('A fusão referencia um nó inexistente ou já consumido.');
     }
 
-    const recommended = greedyPair(activeNodes);
-    greedyChoiceHistory.push(
-      (recommended[0] === choice.firstNodeId && recommended[1] === choice.secondNodeId) ||
-        (recommended[0] === choice.secondNodeId && recommended[1] === choice.firstNodeId),
-    );
+    greedyChoiceHistory.push(isGreedyChoice(activeNodes, first.node, second.node));
     activeNodes.delete(choice.firstNodeId);
     activeNodes.delete(choice.secondNodeId);
 

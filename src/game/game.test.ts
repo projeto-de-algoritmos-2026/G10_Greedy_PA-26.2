@@ -6,6 +6,7 @@ import { buildMissionReport, loadMission } from '../domain';
 import {
   applyGameCommand,
   createInitialGameState,
+  replayHuffmanMerges,
   selectHuffmanProgress,
   selectMissionReport,
   selectUnlockedTerminals,
@@ -151,5 +152,18 @@ describe('fluxo do jogo', () => {
     expect(report?.compressed.transmission.totals.totalBitLength).toBeGreaterThan(
       reference.compressed.transmission.totals.totalBitLength,
     );
+  });
+
+  it('trata empates de peso como escolhas gulosas equivalentes', () => {
+    const frequencies = [
+      { symbol: 0, weight: 5 },
+      { symbol: 1, weight: 5 },
+      { symbol: 2, weight: 5 },
+    ];
+    const progress = replayHuffmanMerges(frequencies, [
+      { firstNodeId: 'leaf-1', secondNodeId: 'leaf-2' },
+    ]);
+
+    expect(progress.allChoicesGreedy).toBe(true);
   });
 });
