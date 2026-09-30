@@ -1,5 +1,5 @@
 import { InvalidPacketError } from './errors';
-import type { Packet, Schedule, ScheduledPacket } from './types';
+import type { Packet, Schedule, ScheduledPacket, ScheduleOptions } from './types';
 
 function validatePackets(packets: readonly Packet[]): void {
   const seenIds = new Set<string>();
@@ -23,6 +23,14 @@ function validatePackets(packets: readonly Packet[]): void {
   }
 }
 
+function readInitialTime(options: ScheduleOptions): number {
+  const initialTime = options.initialTime ?? 0;
+  if (!Number.isFinite(initialTime) || initialTime < 0) {
+    throw new InvalidPacketError(`Instante inicial inválido: ${initialTime}.`);
+  }
+  return initialTime;
+}
+
 /**
  * Ordena os pacotes por prazo (`dueDate`) não decrescente — Earliest Due Date, também
  * apresentada nos slides da disciplina como Earliest Deadline First (EDD/EDF).
@@ -41,10 +49,14 @@ export function earliestDueDateOrder(packets: readonly Packet[]): readonly Packe
  * Todos os pacotes estão disponíveis em t=0, então o início de cada um coincide com a conclusão
  * do anterior. `T_max` é derivado dos `T_j` calculados, nunca informado separadamente.
  */
-export function scheduleInGivenOrder(packets: readonly Packet[]): Schedule {
+export function scheduleInGivenOrder(
+  packets: readonly Packet[],
+  options: ScheduleOptions = {},
+): Schedule {
   validatePackets(packets);
 
-  let time = 0;
+  const initialTime = readInitialTime(options);
+  let time = initialTime;
   let maxLateness = 0;
   const scheduled: ScheduledPacket[] = packets.map((packet) => {
     const startTime = time;
@@ -56,6 +68,7 @@ export function scheduleInGivenOrder(packets: readonly Packet[]): Schedule {
   });
 
   return Object.freeze({
+    initialTime,
     packets: Object.freeze(scheduled),
     maxLateness,
     totalCompletionTime: time,
@@ -73,6 +86,9 @@ export function scheduleInGivenOrder(packets: readonly Packet[]): Schedule {
  * aumenta o atraso do par trocado — logo existe um cronograma ótimo em ordem EDD. A compressão
  * de Huffman altera `p_j` e, portanto, `C_j` e `T_max`, mas não altera essa regra de ordenação.
  */
-export function scheduleEarliestDueDate(packets: readonly Packet[]): Schedule {
-  return scheduleInGivenOrder(earliestDueDateOrder(packets));
+export function scheduleEarliestDueDate(
+  packets: readonly Packet[],
+  options: ScheduleOptions = {},
+): Schedule {
+  return scheduleInGivenOrder(earliestDueDateOrder(packets), options);
 }

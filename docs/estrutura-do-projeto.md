@@ -294,26 +294,22 @@ Estados principais:
 
 ```text
 briefing
-  -> investigating
-  -> building-code
-  -> compressed
+  -> investigation
+  -> compression
   -> scheduling
-  -> transmitted
+  -> transmission
   -> report
 ```
 
-O estado deve registrar separadamente:
+O estado serializável registra somente:
 
-- dados imutáveis da missão;
-- progresso do jogador;
-- histórico de combinações da árvore;
-- solução Huffman de referência;
-- ordem manual dos pacotes;
-- ordem EDD de referência;
-- métricas derivadas.
+- identificador e fase da missão;
+- histórico das escolhas de combinação da árvore;
+- ordem manual dos identificadores de pacotes.
 
-Métricas derivadas não devem ser duplicadas no estado se puderem ser recalculadas
-com segurança.
+Dados imutáveis da missão são mantidos fora desse estado. Árvore, tabela de
+códigos, ordem EDD, desbloqueios, cronogramas e relatório são reconstruídos por
+seletores, evitando duplicação de métricas derivadas.
 
 ## 9. Stack tecnológica
 

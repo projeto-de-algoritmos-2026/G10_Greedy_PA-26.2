@@ -103,21 +103,12 @@ export function loadMission(definition: MissionDefinition): LoadedMission {
   const packets = definition.packets.map((packet, index) => {
     const payload = payloads[index];
     if (payload === undefined) throw new InvalidMissionError('Pacote sem payload materializado.');
-    const compressedBitLength = [...payload].reduce((total, symbol) => {
-      const code = codeTable[symbol];
-      if (code === undefined)
-        throw new InvalidMissionError(`Símbolo ${symbol} sem código Huffman.`);
-      return total + code.length;
-    }, 0);
     const originalBitLength = payload.length * format.bitsPerSymbol;
     return Object.freeze({
       id: packet.id,
       deadline: packet.deadline,
       payload,
       originalBitLength,
-      compressedBitLength,
-      originalTransmissionTime: originalBitLength / bandwidth,
-      compressedTransmissionTime: compressedBitLength / bandwidth,
     });
   });
 
@@ -135,6 +126,7 @@ export function loadMission(definition: MissionDefinition): LoadedMission {
       frequencies: build.frequencies,
       tree: build.root,
       codeTable,
+      referenceMergeHistory: build.history,
       sharedHeaderBitLength,
     }),
     packets: Object.freeze(packets),

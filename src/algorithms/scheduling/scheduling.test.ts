@@ -108,6 +108,7 @@ describe('scheduleInGivenOrder', () => {
 describe('scheduleEarliestDueDate', () => {
   it('trata conjuntos vazio e unitário', () => {
     expect(scheduleEarliestDueDate([])).toEqual({
+      initialTime: 0,
       packets: [],
       maxLateness: 0,
       totalCompletionTime: 0,
@@ -135,6 +136,24 @@ describe('scheduleEarliestDueDate', () => {
     expect(schedule.packets.map((p) => p.id)).toEqual(['urgent', 'late']);
     expect(schedule.packets[0]).toMatchObject({ startTime: 0, completionTime: 3, lateness: 0 });
     expect(schedule.packets[1]).toMatchObject({ startTime: 3, completionTime: 5, lateness: 0 });
+  });
+
+  it('aplica um custo inicial comum sem alterar a ordem EDD', () => {
+    const packets = [packet('late', 2, 10), packet('urgent', 3, 4)];
+
+    const schedule = scheduleEarliestDueDate(packets, { initialTime: 1.5 });
+
+    expect(schedule.initialTime).toBe(1.5);
+    expect(schedule.packets.map((p) => p.id)).toEqual(['urgent', 'late']);
+    expect(schedule.packets[0]).toMatchObject({ startTime: 1.5, completionTime: 4.5 });
+    expect(schedule.totalCompletionTime).toBe(6.5);
+  });
+
+  it('rejeita um custo inicial negativo ou não finito', () => {
+    expect(() => scheduleInGivenOrder([], { initialTime: -1 })).toThrowError(InvalidPacketError);
+    expect(() => scheduleInGivenOrder([], { initialTime: Number.POSITIVE_INFINITY })).toThrowError(
+      InvalidPacketError,
+    );
   });
 
   it('minimiza o maior atraso frente a todas as 720 permutações de seis pacotes', () => {

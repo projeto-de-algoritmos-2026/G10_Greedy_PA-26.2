@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { countFrequencies } from '../algorithms/huffman';
 import { deepSpaceMission } from '../data';
-import { InvalidMissionError, loadMission } from './index';
+import { analyzeMissionTransmission, InvalidMissionError, loadMission } from './index';
 import type { MissionDefinition } from './types';
 
 const validDefinition = (): MissionDefinition => ({
@@ -47,23 +47,26 @@ describe('loadMission', () => {
 
   it('usa uma única árvore e produz diferenças observáveis com a compressão', () => {
     const mission = loadMission(deepSpaceMission);
-    const originalBits = mission.packets.reduce(
-      (total, packet) => total + packet.originalBitLength,
-      0,
-    );
-    const compressedBits = mission.packets.reduce(
-      (total, packet) => total + packet.compressedBitLength,
-      0,
-    );
+    const analysis = analyzeMissionTransmission(mission);
 
     expect(mission.telemetry.sharedHeaderBitLength).toBeGreaterThan(0);
-    expect(compressedBits).toBeLessThan(originalBits);
+    expect(analysis.compressed.totals.headerBitLength).toBe(
+      mission.telemetry.sharedHeaderBitLength,
+    );
+    expect(analysis.compressed.totals.totalBitLength).toBeLessThan(
+      analysis.original.totals.totalBitLength,
+    );
     expect(
-      mission.packets.some((packet) => packet.compressedBitLength < packet.originalBitLength),
+      analysis.compressed.packets.some(
+        (packet, index) =>
+          packet.bits.payloadBitLength <
+          (analysis.original.packets[index]?.bits.payloadBitLength ?? 0),
+      ),
     ).toBe(true);
     expect(
-      mission.packets.some(
-        (packet) => packet.compressedTransmissionTime !== packet.originalTransmissionTime,
+      analysis.compressed.packets.some(
+        (packet, index) =>
+          packet.transmissionTime !== analysis.original.packets[index]?.transmissionTime,
       ),
     ).toBe(true);
   });
