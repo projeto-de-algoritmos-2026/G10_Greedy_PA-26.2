@@ -17,7 +17,14 @@ export interface ScheduledPacket extends Packet {
   readonly lateness: number;
 }
 
+export interface ScheduleOptions {
+  /** Instante em que o canal fica disponível para o primeiro pacote. */
+  readonly initialTime?: number;
+}
+
 export interface Schedule {
+  /** Custo inicial comum pago antes do primeiro pacote. */
+  readonly initialTime: number;
   readonly packets: readonly ScheduledPacket[];
   /** T_max = max(T_j) do cronograma. */
   readonly maxLateness: number;

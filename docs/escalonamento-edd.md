@@ -31,6 +31,11 @@ Para cada pacote `j`:
 manual escolhida pelo jogador, permitindo comparar com a referência EDD via
 `compareToEarliestDueDate` (`src/algorithms/scheduling/metrics.ts`).
 
+As funções de escalonamento aceitam `initialTime` opcional. Ele representa um
+custo comum do canal antes do primeiro pacote, como o envio do cabeçalho Huffman.
+Esse custo desloca inícios, conclusões e atrasos, mas não participa da ordenação
+EDD. O valor padrão continua sendo zero.
+
 ## Hipótese de otimalidade
 
 Para uma única máquina, sem datas de liberação e sem preempção, ordenar por
@@ -61,8 +66,9 @@ resultado é reproduzível entre execuções.
 
 ## Casos extremos e validação
 
-- nenhum pacote produz um cronograma vazio (`maxLateness = 0`,
+- nenhum pacote produz um cronograma vazio (`maxLateness = 0`; sem custo inicial,
   `totalCompletionTime = 0`);
+- o instante inicial deve ser finito e não negativo;
 - duração de transmissão deve ser finita e positiva;
 - prazo deve ser finito (pode ser negativo, representando um pacote já
   atrasado no instante de disponibilidade);

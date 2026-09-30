@@ -56,3 +56,19 @@ topologia serializada preserva as escolhas feitas quando existem empates.
 As métricas separam tamanho original, cabeçalho, bits úteis, bytes do payload,
 padding e total armazenado. O total efetivo inclui cabeçalho e o byte completo
 que contém o padding.
+
+## Uso compartilhado na missão
+
+A missão constrói uma única árvore com a concatenação dos payloads. O custo do
+cabeçalho dessa árvore é pago uma vez no início da transmissão. Depois, cada
+pacote é empacotado com a mesma tabela e contabiliza separadamente seus bits
+úteis e o padding do último byte:
+
+```text
+total comprimido = cabeçalho compartilhado
+                  + soma dos payloads codificados
+                  + soma dos paddings dos pacotes
+```
+
+O scheduler recebe como custo inicial `bits do cabeçalho / largura de banda`.
+As durações dos pacotes usam `(payload + padding) / largura de banda`.
