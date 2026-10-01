@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { ControlRoom } from './components/ControlRoom';
+import { HuffmanTerminal } from './components/HuffmanTerminal';
 import { SchedulerTerminal } from './components/SchedulerTerminal';
 import { TERMINALS } from './components/terminals';
 import type { TerminalId } from './components/terminals';
 import { deepSpaceMission } from './data';
 import { loadMission } from './domain';
-import { applyGameCommand, createInitialGameState, selectMissionReport } from './game';
+import {
+  applyGameCommand,
+  createInitialGameState,
+  selectHuffmanProgress,
+  selectMissionReport,
+} from './game';
 import type { GameCommand, GameState } from './game';
 
 const mission = loadMission(deepSpaceMission);
@@ -22,22 +28,7 @@ export default function App() {
     setError(result.ok ? null : result.error.message);
   };
 
-  const applyReferenceHuffman = () => {
-    let current = state;
-    for (const step of mission.telemetry.referenceMergeHistory) {
-      const result = applyGameCommand(mission, current, {
-        type: 'MERGE_HUFFMAN_NODES',
-        firstNodeId: step.firstExtracted.id,
-        secondNodeId: step.secondExtracted.id,
-      });
-      if (!result.ok) return setError(result.error.message);
-      current = result.state;
-    }
-    const confirmed = applyGameCommand(mission, current, { type: 'CONFIRM_COMPRESSION' });
-    setState(confirmed.state);
-    setError(confirmed.ok ? null : confirmed.error.message);
-  };
-
+  const huffmanProgress = selectHuffmanProgress(mission, state);
   const report = state.phase === 'briefing' ? null : selectMissionReport(mission, state);
   const terminal = TERMINALS.find((entry) => entry.id === openTerminal);
 
@@ -77,15 +68,13 @@ export default function App() {
             </section>
           )}
           {terminal.id === 'huffman' && (
-            <section className="terminal">
-              <h2>Huffman</h2>
-              <p>Terminal interativo de Huffman ainda não implementado.</p>
-              {state.phase === 'compression' && (
-                <button type="button" className="primary" onClick={applyReferenceHuffman}>
-                  Usar árvore de referência (provisório)
-                </button>
-              )}
-            </section>
+            <HuffmanTerminal
+              mission={mission}
+              state={state}
+              progress={huffmanProgress}
+              report={report}
+              dispatch={dispatch}
+            />
           )}
           {terminal.id === 'report' && (
             <section className="terminal">

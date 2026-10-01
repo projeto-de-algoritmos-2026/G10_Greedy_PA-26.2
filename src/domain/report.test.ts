@@ -41,8 +41,29 @@ describe('buildMissionReport', () => {
     expect(report.comparison.spaceSavingRatio).toBe(1 - compressedBits / originalBits);
     expect(report.packetCount).toBe(mission.packets.length);
     expect(report.huffman.averageCodeLength).toBeGreaterThan(0);
+    expect(report.huffman.payloadBitLength).toBe(
+      report.compressed.transmission.totals.payloadBitLength,
+    );
+    expect(report.huffman.totalBitLength).toBe(
+      report.compressed.transmission.totals.totalBitLength,
+    );
+    expect(report.huffman.referencePayloadBitLength).toBeGreaterThan(0);
+    expect(report.huffman.referenceTotalBitLength).toBeGreaterThan(0);
     expect(report.huffman.isOptimal).toBe(true);
     expect(report.huffman.greedyChoiceHistory).toBeNull();
+  });
+
+  it('distingue sair da regra de obter um custo final pior', () => {
+    const mission = loadMission(deepSpaceMission);
+    const report = buildMissionReport(mission, {
+      tree: mission.telemetry.tree,
+      greedyChoiceHistory: [false, true, true, true, true],
+    });
+
+    expect(report.huffman.allChoicesGreedy).toBe(false);
+    expect(report.huffman.isOptimal).toBe(true);
+    expect(report.huffman.averageCodeLength).toBe(report.huffman.referenceAverageCodeLength);
+    expect(report.huffman.payloadBitLength).toBe(report.huffman.referencePayloadBitLength);
   });
 
   it('é determinístico e não modifica a ordem fornecida', () => {

@@ -91,6 +91,7 @@ export function buildMissionReport(
   validatePacketOrder(mission, packetOrder);
 
   const transmission = analyzeMissionTransmission(mission, tree);
+  const referenceTransmission = analyzeMissionTransmission(mission, mission.telemetry.tree);
   const original = createScheduleReport(transmission.original, packetOrder);
   const compressed = createScheduleReport(transmission.compressed, packetOrder);
   const originalBits = original.transmission.totals.totalBitLength;
@@ -113,8 +114,13 @@ export function buildMissionReport(
     packetOrder,
     huffman: Object.freeze({
       codeTable: transmission.codeTable,
+      referenceCodeTable: referenceTransmission.codeTable,
       averageCodeLength: selectedWeightedLength / totalSymbols,
       referenceAverageCodeLength: referenceWeightedLength / totalSymbols,
+      payloadBitLength: transmission.compressed.totals.payloadBitLength,
+      referencePayloadBitLength: referenceTransmission.compressed.totals.payloadBitLength,
+      totalBitLength: transmission.compressed.totals.totalBitLength,
+      referenceTotalBitLength: referenceTransmission.compressed.totals.totalBitLength,
       isOptimal: selectedWeightedLength === referenceWeightedLength,
       greedyChoiceHistory,
       allChoicesGreedy: greedyChoiceHistory?.every(Boolean) ?? null,

@@ -102,8 +102,13 @@ export interface MissionReport {
   readonly packetOrder: readonly string[];
   readonly huffman: {
     readonly codeTable: HuffmanCodeTable;
+    readonly referenceCodeTable: HuffmanCodeTable;
     readonly averageCodeLength: number;
     readonly referenceAverageCodeLength: number;
+    readonly payloadBitLength: number;
+    readonly referencePayloadBitLength: number;
+    readonly totalBitLength: number;
+    readonly referenceTotalBitLength: number;
     readonly isOptimal: boolean;
     /** `null` quando o relatório não recebeu o histórico de decisões do jogador. */
     readonly greedyChoiceHistory: readonly boolean[] | null;

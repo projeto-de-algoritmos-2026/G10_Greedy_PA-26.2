@@ -6,7 +6,7 @@ import type {
   HuffmanMergeStep,
   HuffmanNode,
 } from '../algorithms/huffman';
-import type { HuffmanMergeChoice, HuffmanProgress } from './types';
+import type { HuffmanMergeAssessment, HuffmanMergeChoice, HuffmanProgress } from './types';
 
 export class InvalidGameStateError extends Error {
   constructor(message: string) {
@@ -34,17 +34,34 @@ function createInitialNodes(frequencies: FrequencyTable): ActiveNode[] {
     }));
 }
 
-/** Escolha gulosa = qualquer par com os dois menores pesos; empates de peso são equivalentes. */
-function isGreedyChoice(
-  activeNodes: ReadonlyMap<string, ActiveNode>,
-  first: HuffmanNode,
-  second: HuffmanNode,
-): boolean {
-  const [smallest, secondSmallest] = [...activeNodes.values()]
-    .map((entry) => entry.node.weight)
-    .sort((a, b) => a - b);
-  const [low, high] = [first.weight, second.weight].sort((a, b) => a - b);
-  return low === smallest && high === secondSmallest;
+function compareActiveNodes(first: ActiveNode, second: ActiveNode): number {
+  return first.node.weight - second.node.weight || first.insertionOrder - second.insertionOrder;
+}
+
+/** Avalia uma escolha antes da fusão sem alterar o progresso serializado. */
+export function assessHuffmanMergeChoice(
+  activeNodes: readonly HuffmanNode[],
+  firstNodeId: string,
+  secondNodeId: string,
+): HuffmanMergeAssessment {
+  if (firstNodeId === secondNodeId) {
+    throw new InvalidGameStateError('Uma fusão exige dois nós diferentes.');
+  }
+  const nodesById = new Map(activeNodes.map((node) => [node.id, node]));
+  const firstNode = nodesById.get(firstNodeId);
+  const secondNode = nodesById.get(secondNodeId);
+  if (firstNode === undefined || secondNode === undefined) {
+    throw new InvalidGameStateError('A fusão referencia um nó inexistente ou já consumido.');
+  }
+
+  const [smallest, secondSmallest] = activeNodes.map((node) => node.weight).sort((a, b) => a - b);
+  const [low, high] = [firstNode.weight, secondNode.weight].sort((a, b) => a - b);
+  return Object.freeze({
+    firstNode,
+    secondNode,
+    mergedWeight: firstNode.weight + secondNode.weight,
+    followsGreedyRule: low === smallest && high === secondSmallest,
+  });
 }
 
 /** Reconstrói árvore e histórico sem armazenar nós derivados no estado do jogo. */
@@ -58,16 +75,18 @@ export function replayHuffmanMerges(
   const greedyChoiceHistory: boolean[] = [];
 
   for (const [index, choice] of choices.entries()) {
-    if (choice.firstNodeId === choice.secondNodeId) {
-      throw new InvalidGameStateError('Uma fusão exige dois nós diferentes.');
-    }
     const first = activeNodes.get(choice.firstNodeId);
     const second = activeNodes.get(choice.secondNodeId);
-    if (first === undefined || second === undefined) {
-      throw new InvalidGameStateError('A fusão referencia um nó inexistente ou já consumido.');
-    }
+    const assessment = assessHuffmanMergeChoice(
+      [...activeNodes.values()].map((entry) => entry.node),
+      choice.firstNodeId,
+      choice.secondNodeId,
+    );
+    // A avaliação acima também valida os identificadores; estas referências existem neste ponto.
+    if (first === undefined || second === undefined)
+      throw new InvalidGameStateError('Fusão inválida.');
 
-    greedyChoiceHistory.push(isGreedyChoice(activeNodes, first.node, second.node));
+    greedyChoiceHistory.push(assessment.followsGreedyRule);
     activeNodes.delete(choice.firstNodeId);
     activeNodes.delete(choice.secondNodeId);
 
@@ -92,7 +111,10 @@ export function replayHuffmanMerges(
     });
   }
 
-  const remaining = Object.freeze([...activeNodes.values()].map((entry) => entry.node));
+  // A ordem exposta corresponde à prioridade de extração da min-heap, com desempate estável.
+  const remaining = Object.freeze(
+    [...activeNodes.values()].sort(compareActiveNodes).map((entry) => entry.node),
+  );
   const complete = remaining.length === 1;
   const root = complete ? (remaining[0] ?? null) : null;
   if (root !== null) validateHuffmanTree(root);

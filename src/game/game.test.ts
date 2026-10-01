@@ -5,6 +5,7 @@ import { deepSpaceMission } from '../data';
 import { buildMissionReport, loadMission } from '../domain';
 import {
   applyGameCommand,
+  assessHuffmanMergeChoice,
   createInitialGameState,
   replayHuffmanMerges,
   selectHuffmanProgress,
@@ -108,6 +109,22 @@ describe('fluxo do jogo', () => {
     expect(result.state).toEqual(createInitialGameState(mission));
   });
 
+  it('desfaz a última fusão sem armazenar a árvore derivada', () => {
+    let state = enterCompression();
+    const firstStep = mission.telemetry.referenceMergeHistory[0];
+    if (firstStep === undefined) throw new Error('Histórico Huffman vazio.');
+    state = applySuccessfully(state, {
+      type: 'MERGE_HUFFMAN_NODES',
+      firstNodeId: firstStep.firstExtracted.id,
+      secondNodeId: firstStep.secondExtracted.id,
+    });
+
+    state = applySuccessfully(state, { type: 'UNDO_HUFFMAN_MERGE' });
+
+    expect(state.huffmanMergeChoices).toEqual([]);
+    expect(selectHuffmanProgress(mission, state).history).toEqual([]);
+  });
+
   it('é serializável e não armazena métricas derivadas', () => {
     const state = completeReferenceHuffman(enterCompression());
     const restored = JSON.parse(JSON.stringify(state)) as GameState;
@@ -165,5 +182,9 @@ describe('fluxo do jogo', () => {
     ]);
 
     expect(progress.allChoicesGreedy).toBe(true);
+    const initial = replayHuffmanMerges(frequencies, []);
+    expect(
+      assessHuffmanMergeChoice(initial.activeNodes, 'leaf-1', 'leaf-2').followsGreedyRule,
+    ).toBe(true);
   });
 });
