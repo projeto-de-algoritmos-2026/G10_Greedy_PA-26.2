@@ -152,4 +152,29 @@ describe('App', () => {
     expect(lateBars).toHaveLength(lateRows.length);
     for (const bar of lateBars) expect(bar).toHaveTextContent(/⚠ \+/);
   });
+
+  it('consolida o relatório final e permite reiniciar a missão', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await reachScheduler(user);
+
+    await user.click(screen.getByRole('button', { name: 'Confirmar ordem e transmitir' }));
+    await user.click(screen.getByRole('button', { name: 'Concluir transmissão' }));
+    await user.click(screen.getByRole('button', { name: /Relatório/ }));
+
+    expect(screen.getByRole('heading', { name: 'Relatório da missão' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Original × comprimido' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Jogador × Huffman' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Ordem manual × EDD' })).toBeVisible();
+    expect(screen.getByText('Payload e custo efetivo da transmissão')).toBeVisible();
+    expect(screen.getByText(/mesmo custo da referência/)).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Reiniciar missão' }));
+    expect(screen.getByRole('button', { name: 'Iniciar missão' })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Relatório/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(screen.queryByRole('heading', { name: 'Relatório da missão' })).not.toBeInTheDocument();
+  });
 });

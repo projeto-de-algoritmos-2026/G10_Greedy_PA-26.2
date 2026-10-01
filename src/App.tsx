@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ControlRoom } from './components/ControlRoom';
 import { HuffmanTerminal } from './components/HuffmanTerminal';
+import { MissionReportTerminal } from './components/MissionReportTerminal';
 import { SchedulerTerminal } from './components/SchedulerTerminal';
 import { TERMINALS } from './components/terminals';
 import type { TerminalId } from './components/terminals';
@@ -31,6 +32,12 @@ export default function App() {
   const huffmanProgress = selectHuffmanProgress(mission, state);
   const report = state.phase === 'briefing' ? null : selectMissionReport(mission, state);
   const terminal = TERMINALS.find((entry) => entry.id === openTerminal);
+  const restartMission = () => {
+    const result = applyGameCommand(mission, state, { type: 'RESTART_MISSION' });
+    setState(result.state);
+    setError(result.ok ? null : result.error.message);
+    if (result.ok) setOpenTerminal(null);
+  };
 
   return (
     <main>
@@ -76,11 +83,8 @@ export default function App() {
               dispatch={dispatch}
             />
           )}
-          {terminal.id === 'report' && (
-            <section className="terminal">
-              <h2>Relatório</h2>
-              <p>Terminal de relatório ainda não implementado.</p>
-            </section>
+          {terminal.id === 'report' && report !== null && (
+            <MissionReportTerminal report={report} onRestart={restartMission} />
           )}
         </div>
       )}

@@ -230,6 +230,10 @@ button:focus-visible {
   color: var(--warn);
 }
 
+.mission-report h3 {
+  margin-top: 1.75rem;
+}
+
 .order-list li {
   display: flex;
   gap: 0.5rem;
