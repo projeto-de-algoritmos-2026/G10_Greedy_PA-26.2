@@ -76,6 +76,19 @@ export function applyGameCommand(
     }
     return succeed(Object.freeze({ ...state, huffmanMergeChoices: choices }));
   }
+  if (command.type === 'UNDO_HUFFMAN_MERGE') {
+    const phaseError = requirePhase(state, 'compression', command.type);
+    if (phaseError !== null) return phaseError;
+    if (state.huffmanMergeChoices.length === 0) {
+      return fail(state, 'INVALID_HUFFMAN_CHOICE', 'Ainda não existe uma fusão para desfazer.');
+    }
+    return succeed(
+      Object.freeze({
+        ...state,
+        huffmanMergeChoices: Object.freeze(state.huffmanMergeChoices.slice(0, -1)),
+      }),
+    );
+  }
   if (command.type === 'CONFIRM_COMPRESSION') {
     const phaseError = requirePhase(state, 'compression', command.type);
     if (phaseError !== null) return phaseError;

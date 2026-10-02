@@ -25,6 +25,7 @@ export type GameCommand =
       readonly firstNodeId: string;
       readonly secondNodeId: string;
     }
+  | { readonly type: 'UNDO_HUFFMAN_MERGE' }
   | { readonly type: 'CONFIRM_COMPRESSION' }
   | { readonly type: 'SET_PACKET_ORDER'; readonly packetIds: readonly string[] }
   | { readonly type: 'CONFIRM_SCHEDULE' }
@@ -55,6 +56,14 @@ export interface HuffmanProgress {
   readonly allChoicesGreedy: boolean;
   readonly root: HuffmanNode | null;
   readonly complete: boolean;
+}
+
+export interface HuffmanMergeAssessment {
+  readonly firstNode: HuffmanNode;
+  readonly secondNode: HuffmanNode;
+  readonly mergedWeight: number;
+  /** Aceita qualquer par com os dois menores pesos, inclusive alternativas empatadas. */
+  readonly followsGreedyRule: boolean;
 }
 
 export interface UnlockedTerminals {

@@ -3,12 +3,26 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import App from './App';
 
-async function reachScheduler(user: ReturnType<typeof userEvent.setup>) {
+async function enterCompression(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'Iniciar missão' }));
   await user.click(screen.getByRole('button', { name: /Telemetria/ }));
   await user.click(screen.getByRole('button', { name: 'Concluir investigação' }));
   await user.click(screen.getByRole('button', { name: /Huffman/ }));
-  await user.click(screen.getByRole('button', { name: /árvore de referência/ }));
+}
+
+async function completeGreedyHuffman(user: ReturnType<typeof userEvent.setup>) {
+  for (let step = 0; step < 5; step += 1) {
+    const heap = screen.getByRole('list', { name: /Min-heap de candidatos/ });
+    await user.click(within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!);
+    await user.click(within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!);
+    await user.click(screen.getByRole('button', { name: 'Fundir nós selecionados' }));
+  }
+}
+
+async function reachScheduler(user: ReturnType<typeof userEvent.setup>) {
+  await enterCompression(user);
+  await completeGreedyHuffman(user);
+  await user.click(screen.getByRole('button', { name: 'Confirmar árvore e continuar' }));
   await user.click(screen.getByRole('button', { name: /Scheduler/ }));
 }
 
@@ -61,6 +75,55 @@ describe('App', () => {
     );
   });
 
+  it('avisa sobre escolha fora da regra sem antecipar o custo da árvore', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await enterCompression(user);
+
+    await user.click(screen.getByRole('button', { name: /Selecionar nominal/ }));
+    await user.click(screen.getByRole('button', { name: /Selecionar temperatura-alta/ }));
+
+    const warning = screen.getByRole('alert');
+    expect(warning).toHaveTextContent('Escolha fora da regra de Huffman');
+    expect(warning).toHaveTextContent('somente depois que todas as fusões terminarem');
+    expect(warning).not.toHaveTextContent(/subótim|custo maior/i);
+    expect(screen.getByRole('button', { name: 'Continuar com a fusão' })).toBeEnabled();
+  });
+
+  it('permite revisar e desfazer cada fusão e oferece alternativa textual da árvore', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await enterCompression(user);
+
+    const heap = screen.getByRole('list', { name: /Min-heap de candidatos/ });
+    await user.click(within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!);
+    await user.click(within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!);
+    await user.click(screen.getByRole('button', { name: 'Fundir nós selecionados' }));
+
+    expect(screen.getByText(/Fusão 1:/).closest('li')).toHaveTextContent(
+      'Seguiu a regra de Huffman',
+    );
+    await user.click(screen.getByRole('button', { name: 'Revisar fusão 1' }));
+    expect(screen.getByRole('img', { name: /Árvore de Huffman/ })).toBeVisible();
+    expect(screen.getByText('Alternativa textual da árvore')).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Desfazer última fusão' }));
+    expect(screen.getByText('Nenhuma fusão realizada.')).toBeVisible();
+  });
+
+  it('exibe códigos e custo somente após completar a árvore', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await enterCompression(user);
+
+    expect(screen.queryByText('Códigos e comparação final')).not.toBeInTheDocument();
+    await completeGreedyHuffman(user);
+
+    expect(screen.getByText('Códigos e comparação final')).toBeVisible();
+    expect(screen.getByText('Tabela de códigos da árvore do jogador')).toBeVisible();
+    expect(screen.getByText(/mesmo custo da referência/)).toBeVisible();
+  });
+
   it('reordenar por botão atualiza métricas e EDD as iguala à referência', async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -88,5 +151,30 @@ describe('App', () => {
     expect(lateBars.length).toBeGreaterThan(0);
     expect(lateBars).toHaveLength(lateRows.length);
     for (const bar of lateBars) expect(bar).toHaveTextContent(/⚠ \+/);
+  });
+
+  it('consolida o relatório final e permite reiniciar a missão', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await reachScheduler(user);
+
+    await user.click(screen.getByRole('button', { name: 'Confirmar ordem e transmitir' }));
+    await user.click(screen.getByRole('button', { name: 'Concluir transmissão' }));
+    await user.click(screen.getByRole('button', { name: /Relatório/ }));
+
+    expect(screen.getByRole('heading', { name: 'Relatório da missão' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Original × comprimido' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Jogador × Huffman' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Ordem manual × EDD' })).toBeVisible();
+    expect(screen.getByText('Payload e custo efetivo da transmissão')).toBeVisible();
+    expect(screen.getByText(/mesmo custo da referência/)).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Reiniciar missão' }));
+    expect(screen.getByRole('button', { name: 'Iniciar missão' })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Relatório/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(screen.queryByRole('heading', { name: 'Relatório da missão' })).not.toBeInTheDocument();
   });
 });

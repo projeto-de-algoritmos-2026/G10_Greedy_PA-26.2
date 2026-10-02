@@ -116,6 +116,124 @@ button:focus-visible {
   gap: 0.4rem;
 }
 
+.heap-list,
+.merge-history {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.heap-list li,
+.merge-history li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  padding: 0.6rem;
+}
+
+.heap-list li > span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.heap-list li.candidate-selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.choice-warning,
+.merge-confirmation {
+  border: 1px solid var(--warn);
+  border-radius: 0.4rem;
+  padding: 0.75rem;
+  margin-block: 1rem;
+}
+
+.merge-confirmation {
+  border-color: var(--ok);
+}
+
+.huffman-tree {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.huffman-tree figcaption {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.huffman-tree svg {
+  display: block;
+  min-width: 36rem;
+  width: 100%;
+  max-height: 32rem;
+  background: #0a1020;
+  border: 1px solid var(--line);
+}
+
+.huffman-tree line {
+  stroke: #8296bc;
+  stroke-width: 2;
+}
+
+.huffman-tree circle {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.huffman-tree .tree-leaf {
+  fill: #174f6d;
+}
+
+.huffman-tree .tree-branch {
+  fill: #272f46;
+}
+
+.huffman-tree text {
+  fill: #fff;
+  font-size: 0.8rem;
+}
+
+.huffman-tree .tree-bit {
+  fill: var(--warn);
+  font-weight: 700;
+}
+
+.huffman-tree .tree-weight {
+  font-size: 0.7rem;
+}
+
+.tree-text {
+  margin-top: 0.75rem;
+}
+
+.tree-text summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.bit-code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: 0.1em;
+}
+
+.result-ok {
+  color: var(--ok);
+}
+
+.result-warn {
+  color: var(--warn);
+}
+
+.mission-report h3 {
+  margin-top: 1.75rem;
+}
+
 .order-list li {
   display: flex;
   gap: 0.5rem;
@@ -209,5 +327,11 @@ td {
 
   .gantt-row {
     grid-template-columns: 4.5rem 1fr;
+  }
+
+  .heap-list li,
+  .merge-history li {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
