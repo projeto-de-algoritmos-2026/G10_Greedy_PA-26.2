@@ -10,6 +10,12 @@ async function enterCompression(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: /Huffman/ }));
 }
 
+async function activateWithKeyboard(user: ReturnType<typeof userEvent.setup>, button: HTMLElement) {
+  button.focus();
+  expect(button).toHaveFocus();
+  await user.keyboard('{Enter}');
+}
+
 async function completeGreedyHuffman(user: ReturnType<typeof userEvent.setup>) {
   for (let step = 0; step < 5; step += 1) {
     const heap = screen.getByRole('list', { name: /Min-heap de candidatos/ });
@@ -38,6 +44,27 @@ describe('App', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'DeepSpace: Mission Control' }),
     ).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Pular para o conteúdo principal' })).toHaveAttribute(
+      'href',
+      '#main-content',
+    );
+    expect(screen.getByText('Fase')).toBeVisible();
+    expect(screen.getByText('Aguardando autorização')).toBeVisible();
+  });
+
+  it('move o foco ao abrir e fechar um terminal', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Iniciar missão' }));
+    const telemetry = screen.getByRole('button', { name: /Telemetria/ });
+    await user.click(telemetry);
+
+    expect(screen.getByLabelText('Terminal aberto: Telemetria')).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: /Voltar à sala de controle/ })).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(telemetry).toHaveFocus();
   });
 
   it('alcança todos os terminais por teclado e explica os bloqueados', async () => {
@@ -45,16 +72,59 @@ describe('App', () => {
     render(<App />);
 
     const names = ['Telemetria', 'Huffman', 'Scheduler', 'Relatório'];
+    await user.tab();
+    expect(screen.getByRole('link', { name: 'Pular para o conteúdo principal' })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Iniciar missão' })).toHaveFocus();
     for (const name of names) {
       const hotspot = screen.getByRole('button', { name: new RegExp(name) });
       await user.tab();
-      // Tab percorre "Iniciar missão" e depois cada terminal, na ordem do DOM.
-      if (name === 'Telemetria') await user.tab();
       expect(hotspot).toHaveFocus();
       expect(hotspot).toHaveAttribute('aria-disabled', 'true');
       expect(hotspot).toHaveAccessibleDescription(/liberar/);
     }
   });
+
+  it('permite concluir o fluxo inteiro usando somente o teclado', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await activateWithKeyboard(user, screen.getByRole('button', { name: 'Iniciar missão' }));
+    await activateWithKeyboard(user, screen.getByRole('button', { name: /Telemetria/ }));
+    await activateWithKeyboard(user, screen.getByRole('button', { name: 'Concluir investigação' }));
+    await activateWithKeyboard(user, screen.getByRole('button', { name: /Huffman/ }));
+
+    for (let step = 0; step < 5; step += 1) {
+      const heap = screen.getByRole('list', { name: /Min-heap de candidatos/ });
+      await activateWithKeyboard(
+        user,
+        within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!,
+      );
+      await activateWithKeyboard(
+        user,
+        within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!,
+      );
+      await activateWithKeyboard(
+        user,
+        screen.getByRole('button', { name: 'Fundir nós selecionados' }),
+      );
+    }
+
+    await activateWithKeyboard(
+      user,
+      screen.getByRole('button', { name: 'Confirmar árvore e continuar' }),
+    );
+    await activateWithKeyboard(user, screen.getByRole('button', { name: /Scheduler/ }));
+    await activateWithKeyboard(
+      user,
+      screen.getByRole('button', { name: 'Confirmar ordem e transmitir' }),
+    );
+    await activateWithKeyboard(user, screen.getByRole('button', { name: 'Concluir transmissão' }));
+    await activateWithKeyboard(user, screen.getByRole('button', { name: /Relatório/ }));
+
+    expect(screen.getByRole('heading', { name: 'Relatório da missão' })).toBeVisible();
+    expect(screen.getByText('Missão concluída')).toBeVisible();
+  }, 15_000);
 
   it('mantém o estado da missão ao trocar de terminal', async () => {
     const user = userEvent.setup();
