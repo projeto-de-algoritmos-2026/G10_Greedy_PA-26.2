@@ -16,6 +16,7 @@ Universidade de Brasília — FGA, no módulo de **Algoritmos Ambiciosos**.
 O projeto está na fase de planejamento e preparação do MVP. A entrega acadêmica
 está prevista para **5 de outubro de 2026**.
 
+- [Aplicação publicada](https://projeto-de-algoritmos-2026.github.io/G10_Greedy_PA-26.2/)
 - [Issues do projeto](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/issues)
 - [Épico do MVP](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/issues/1)
 - [Milestones](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/milestones)
