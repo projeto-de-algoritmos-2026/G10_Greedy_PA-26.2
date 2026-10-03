@@ -54,6 +54,7 @@ export function ControlRoom({
               <button
                 type="button"
                 className={`hotspot hotspot-${status}`}
+                data-terminal-id={terminal.id}
                 aria-disabled={locked}
                 aria-current={openTerminal === terminal.id ? 'true' : undefined}
                 aria-describedby={hintId}
@@ -61,6 +62,9 @@ export function ControlRoom({
                   if (!locked) onOpenTerminal(terminal.id);
                 }}
               >
+                <span className="hotspot-index" aria-hidden="true">
+                  0{TERMINALS.indexOf(terminal) + 1}
+                </span>
                 <span className="hotspot-name">{terminal.name}</span>
                 <span className="hotspot-status">
                   {status === 'completed' ? '✔ ' : locked ? '🔒 ' : '● '}
