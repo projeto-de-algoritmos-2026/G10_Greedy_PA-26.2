@@ -23,7 +23,9 @@ export interface MissionPacketDefinition {
   readonly payload: readonly number[];
 }
 
+/** Documento declarativo de missão (schema v1); ver docs/formato-missao.md. */
 export interface MissionDefinition {
+  readonly schemaVersion: 1;
   readonly id: string;
   readonly title: string;
   readonly briefing: string;
@@ -35,6 +37,16 @@ export interface MissionDefinition {
   };
   readonly packets: readonly MissionPacketDefinition[];
 }
+
+export interface MissionValidationIssue {
+  /** Caminho do campo no documento, como `packets[2].deadline`. */
+  readonly path: string;
+  readonly message: string;
+}
+
+export type MissionValidationResult =
+  | { readonly ok: true; readonly definition: MissionDefinition }
+  | { readonly ok: false; readonly issues: readonly MissionValidationIssue[] };
 
 export interface LoadedMissionPacket {
   readonly id: string;

@@ -7,6 +7,7 @@ import { analyzeMissionTransmission, InvalidMissionError, loadMission } from './
 import type { MissionDefinition } from './types';
 
 const validDefinition = (): MissionDefinition => ({
+  schemaVersion: 1,
   id: 'test-mission',
   title: 'Missão de teste',
   briefing: 'Transmita a telemetria.',
