@@ -5,7 +5,13 @@ interface HuffmanTreeProps {
   readonly root: HuffmanNode | null;
   readonly title: string;
   readonly alphabet: readonly TelemetrySymbolDefinition[];
+  /** Rótulo curto da folha no diagrama; por padrão `S<símbolo>`. */
+  readonly formatSymbol?: (symbol: number) => string;
+  /** Acima deste número de folhas o diagrama fica ilegível e só a alternativa textual aparece. */
+  readonly maxDiagramLeaves?: number;
 }
+
+const defaultFormatSymbol = (symbol: number): string => `S${symbol}`;
 
 interface PositionedNode {
   readonly node: HuffmanNode;
@@ -81,13 +87,39 @@ function TextTree({
 }
 
 /** Visualização da topologia; pesos, símbolos e arestas vêm da árvore calculada. */
-export function HuffmanTree({ root, title, alphabet }: HuffmanTreeProps) {
+export function HuffmanTree({
+  root,
+  title,
+  alphabet,
+  formatSymbol = defaultFormatSymbol,
+  maxDiagramLeaves = Number.POSITIVE_INFINITY,
+}: HuffmanTreeProps) {
   if (root === null) return <p>Nenhuma fusão disponível para visualizar.</p>;
 
   const labels = new Map(alphabet.map((symbol) => [symbol.value, symbol.label]));
-  const { width, height, nodes, edges } = layoutTree(root);
   const titleId = `tree-title-${root.id}`;
   const descriptionId = `tree-description-${root.id}`;
+  const leafCount = countLeaves(root);
+
+  if (leafCount > maxDiagramLeaves) {
+    return (
+      <figure className="huffman-tree">
+        <figcaption id={titleId}>{title}</figcaption>
+        <p>
+          A árvore possui {leafCount} folhas; o diagrama é desenhado para até {maxDiagramLeaves}. A
+          alternativa textual abaixo contém a árvore completa.
+        </p>
+        <details className="tree-text">
+          <summary>Alternativa textual da árvore</summary>
+          <ul>
+            <TextTree node={root} path="" labels={labels} />
+          </ul>
+        </details>
+      </figure>
+    );
+  }
+
+  const { width, height, nodes, edges } = layoutTree(root);
 
   return (
     <figure className="huffman-tree">
@@ -116,7 +148,7 @@ export function HuffmanTree({ root, title, alphabet }: HuffmanTreeProps) {
           <g key={node.id} transform={`translate(${x} ${y})`}>
             <circle r="25" className={node.kind === 'leaf' ? 'tree-leaf' : 'tree-branch'} />
             <text textAnchor="middle" y="-3">
-              {node.kind === 'leaf' ? `S${node.symbol}` : '+'}
+              {node.kind === 'leaf' ? formatSymbol(node.symbol) : '+'}
             </text>
             <text textAnchor="middle" y="14" className="tree-weight">
               {node.weight}

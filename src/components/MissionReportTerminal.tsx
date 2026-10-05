@@ -1,12 +1,10 @@
 import type { MissionReport } from '../domain';
-import { formatNumber } from './format';
+import { formatNumber, formatPercent } from './format';
 
 interface MissionReportTerminalProps {
   readonly report: MissionReport;
   readonly onRestart: () => void;
 }
-
-const formatPercent = (ratio: number): string => `${formatNumber(ratio * 100)}%`;
 
 /** Consolida somente valores calculados pelo modelo de relatório da simulação. */
 export function MissionReportTerminal({ report, onRestart }: MissionReportTerminalProps) {
