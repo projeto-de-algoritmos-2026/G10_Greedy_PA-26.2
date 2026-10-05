@@ -252,4 +252,61 @@ describe('App', () => {
     );
     expect(screen.queryByRole('heading', { name: 'Relatório da missão' })).not.toBeInTheDocument();
   });
+
+  it('mantém o Scheduler como terminal disponível até a transmissão ser concluída', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await reachScheduler(user);
+
+    await user.click(screen.getByRole('button', { name: 'Confirmar ordem e transmitir' }));
+    await user.click(screen.getByRole('button', { name: /Voltar à sala de controle/ }));
+
+    // Na fase de transmissão o passo pendente ("Concluir transmissão") está no Scheduler.
+    const scheduler = screen.getByRole('button', { name: /Scheduler/ });
+    expect(scheduler).toHaveTextContent('Disponível');
+    expect(scheduler).not.toHaveTextContent('Concluído');
+
+    await user.click(scheduler);
+    await user.click(screen.getByRole('button', { name: 'Concluir transmissão' }));
+    await user.click(screen.getByRole('button', { name: /Voltar à sala de controle/ }));
+    expect(screen.getByRole('button', { name: /Scheduler/ })).toHaveTextContent('Concluído');
+  });
+
+  it('reinicia a sessão da missão pela sala de controle, com confirmação', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Reiniciar sessão da missão' }),
+    ).not.toBeInTheDocument();
+
+    await enterCompression(user);
+    const heap = screen.getByRole('list', { name: /Min-heap de candidatos/ });
+    await user.click(within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!);
+    await user.click(within(heap).getAllByRole('button', { name: /^Selecionar / })[0]!);
+    await user.click(screen.getByRole('button', { name: 'Fundir nós selecionados' }));
+    // Uma seleção pendente referencia nós que deixam de existir após o reinício.
+    await user.click(
+      within(screen.getByRole('list', { name: /Min-heap de candidatos/ })).getAllByRole('button', {
+        name: /^Selecionar /,
+      })[0]!,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Reiniciar sessão da missão' }));
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.getByRole('heading', { name: 'Terminal Huffman' })).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Reiniciar sessão da missão' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmar reinício' }));
+
+    expect(screen.getByRole('button', { name: 'Iniciar missão' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: 'Terminal Huffman' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Telemetria/ })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(localStorage.getItem('deepspace-mission-control:progress')).not.toContain(
+      'huffmanMergeChoices',
+    );
+  });
 });

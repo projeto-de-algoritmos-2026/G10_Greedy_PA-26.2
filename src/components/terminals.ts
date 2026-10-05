@@ -9,6 +9,8 @@ export interface TerminalDefinition {
   readonly description: string;
   /** Fase do jogo em que o terminal é o objetivo atual; fases posteriores o concluem. */
   readonly phase: GamePhase;
+  /** Última fase conduzida neste terminal, quando ele cobre mais de uma. */
+  readonly lastPhase?: GamePhase;
   readonly prerequisite: string;
 }
 
@@ -32,6 +34,8 @@ export const TERMINALS: readonly TerminalDefinition[] = Object.freeze([
     name: 'Scheduler',
     description: 'Ordenar os pacotes e comparar com EDD.',
     phase: 'scheduling',
+    // "Concluir transmissão" fica neste terminal: ele só termina quando o relatório é liberado.
+    lastPhase: 'transmission',
     prerequisite: 'Confirme a árvore de Huffman completa para liberar.',
   },
   {
@@ -54,8 +58,9 @@ const PHASE_ORDER: readonly GamePhase[] = [
 
 export function terminalStatus(terminal: TerminalDefinition, state: GameState): TerminalStatus {
   const current = PHASE_ORDER.indexOf(state.phase);
-  const target = PHASE_ORDER.indexOf(terminal.phase);
-  if (current < target) return 'locked';
+  if (current < PHASE_ORDER.indexOf(terminal.phase)) return 'locked';
   // O relatório é o último passo: alcançá-lo o deixa disponível, não concluído.
-  return current > target ? 'completed' : 'available';
+  return current > PHASE_ORDER.indexOf(terminal.lastPhase ?? terminal.phase)
+    ? 'completed'
+    : 'available';
 }

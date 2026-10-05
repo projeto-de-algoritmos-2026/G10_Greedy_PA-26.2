@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { LoadedMission } from '../domain';
 import type { GameState } from '../game';
 import { TERMINALS, terminalStatus } from './terminals';
@@ -15,6 +16,7 @@ interface ControlRoomProps {
   readonly openTerminal: TerminalId | null;
   readonly onOpenTerminal: (id: TerminalId) => void;
   readonly onStartMission: () => void;
+  readonly onRestartMission: () => void;
 }
 
 /** Sala única de navegação: cada terminal é um botão nativo, alcançável por Tab/Enter/Espaço. */
@@ -24,7 +26,9 @@ export function ControlRoom({
   openTerminal,
   onOpenTerminal,
   onStartMission,
+  onRestartMission,
 }: ControlRoomProps) {
+  const [confirmingRestart, setConfirmingRestart] = useState(false);
   return (
     <section className="control-room" aria-labelledby="room-title">
       <h2 id="room-title">Sala de controle</h2>
@@ -78,6 +82,33 @@ export function ControlRoom({
           );
         })}
       </ul>
+      {state.phase !== 'briefing' &&
+        (confirmingRestart ? (
+          <div className="choice-warning" role="alert">
+            <strong>Reiniciar a sessão desta missão?</strong>
+            <p>
+              A árvore e a ordem desta tentativa serão descartadas e a missão volta ao briefing.
+              Resultados já registrados e as demais missões são mantidos.
+            </p>
+            <button type="button" onClick={() => setConfirmingRestart(false)}>
+              Cancelar
+            </button>{' '}
+            <button
+              type="button"
+              className="primary"
+              onClick={() => {
+                setConfirmingRestart(false);
+                onRestartMission();
+              }}
+            >
+              Confirmar reinício
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setConfirmingRestart(true)}>
+            Reiniciar sessão da missão
+          </button>
+        ))}
     </section>
   );
 }

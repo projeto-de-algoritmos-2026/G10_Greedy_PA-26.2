@@ -55,7 +55,8 @@ export function MissionView({
   }, [openTerminal]);
 
   const restartMission = () => {
-    // Sem terminal aberto não há para onde devolver o foco após o reinício.
+    // O terminal é fechado: seleções feitas nele referenciam nós que o reinício descarta, e
+    // sem terminal aberto não há para onde devolver o foco.
     lastTerminalRef.current = null;
     onOpenTerminal(null);
     dispatch({ type: 'RESTART_MISSION' });
@@ -74,6 +75,7 @@ export function MissionView({
         openTerminal={openTerminal}
         onOpenTerminal={onOpenTerminal}
         onStartMission={() => dispatch({ type: 'ACKNOWLEDGE_BRIEFING' })}
+        onRestartMission={restartMission}
       />
       {state.phase === 'report' && (
         <div className="system-message mission-outcome">
