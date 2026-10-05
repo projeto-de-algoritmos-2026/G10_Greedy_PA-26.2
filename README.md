@@ -1,177 +1,150 @@
 # DeepSpace: Mission Control
 
 > Jogo educacional point & click sobre Codificação de Huffman e escalonamento
-> ambicioso de transmissões espaciais.
+> Earliest Due Date (EDD) aplicado a transmissões espaciais.
 
-O **DeepSpace: Mission Control** coloca o jogador no controle da comunicação com
-uma sonda espacial. Durante uma janela limitada de contato, o operador precisa
-comprimir pacotes de telemetria com Huffman e ordená-los por prazo para reduzir o
-maior atraso da transmissão.
+O **DeepSpace: Mission Control** coloca o jogador no controle da comunicação
+com uma sonda. Durante uma janela limitada de contato, o operador comprime
+pacotes de telemetria com Huffman e escolhe sua ordem de transmissão para
+reduzir o maior atraso.
 
-O projeto é desenvolvido para a disciplina **Projeto de Algoritmos**, da
+O projeto foi desenvolvido para a disciplina **Projeto de Algoritmos**, da
 Universidade de Brasília — FGA, no módulo de **Algoritmos Ambiciosos**.
 
-## Estado do projeto
+## Entrega
 
-O projeto está na fase de planejamento e preparação do MVP. A entrega acadêmica
-está prevista para **5 de outubro de 2026**.
-
-- [Aplicação publicada](https://projeto-de-algoritmos-2026.github.io/G10_Greedy_PA-26.2/)
+- [Aplicação publicada no GitHub Pages](https://projeto-de-algoritmos-2026.github.io/G10_Greedy_PA-26.2/)
+- [Relatório técnico](docs/relatorio.md)
+- **Vídeo de apresentação:** link pendente de publicação após a gravação pelos
+  dois integrantes
+- [Roteiro do vídeo](docs/roteiro-video.md)
 - [Issues do projeto](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/issues)
-- [Épico do MVP](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/issues/1)
-- [Milestones](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/milestones)
-- [Estrutura e arquitetura do projeto](docs/estrutura-do-projeto.md)
-- [Formato binário Huffman](docs/formato-huffman.md)
-- [Huffman canônico e benchmarks](docs/huffman-canonico.md)
-- [Escalonamento EDD e métricas de atraso](docs/escalonamento-edd.md)
-- [Formato de missão, progressão e editor de cenários](docs/formato-missao.md)
-- [Modo laboratório](docs/modo-laboratorio.md)
-- [Validação integrada do MVP](docs/validacao-mvp.md)
 
-## Problema
+## Capturas da aplicação
 
-A sonda produz pacotes de telemetria com conteúdos, tamanhos e deadlines
-diferentes. O canal até a Terra possui largura de banda limitada. Para completar
-a missão, o jogador deverá:
+### Campanha e seleção de missões
 
-1. construir uma árvore de Huffman a partir das frequências da telemetria;
-2. gerar códigos de prefixo e comprimir os pacotes;
-3. observar como a compressão altera suas durações de transmissão;
-4. ordenar os pacotes pelo menor deadline, aplicando Earliest Due Date (EDD);
-5. comparar suas decisões com as soluções produzidas pelos algoritmos.
+![Seleção das missões oficiais e progresso da campanha](docs/images/selecao-missoes.png)
 
-## MVP
+### Construção da árvore de Huffman
 
-O primeiro lançamento terá uma missão completa e reproduzível com:
+![Terminal interativo de construção da árvore de Huffman](docs/images/terminal-huffman.png)
 
-- sala de controle point & click;
-- pacote de dados e briefing da missão;
-- min-heap implementada no projeto;
-- construção manual e automática da árvore de Huffman;
-- possibilidade de manter escolhas diferentes das prescritas por Huffman;
-- codificação e decodificação reais da telemetria;
-- escalonador interativo com estratégia EDD;
-- linha do tempo em formato de gráfico de Gantt;
-- relatório final com compressão, tempos, atrasos e comparação de soluções;
-- execução inteiramente local no navegador;
-- publicação no GitHub Pages.
+### Escalonamento EDD
 
-## Expansões pós-MVP
+![Scheduler com ordem EDD e gráficos de Gantt](docs/images/escalonamento-edd.png)
 
-- **Múltiplas missões e progressão:** quatro missões oficiais com
-  distribuições, bandas e deadlines diferentes; concluir uma libera a seguinte.
-  O progresso e a tentativa em andamento ficam salvos no navegador, sem conta.
-- **Editor de cenários:** importa, valida e exporta missões em um schema JSON
-  versionado, recusando dados inconsistentes e regras de escalonamento fora do
-  modelo em que EDD é ótimo.
-- **Modo laboratório:** aplica o codec a texto ou arquivos do usuário,
-  inteiramente no navegador, exibindo frequências, árvore, cabeçalho, padding e
-  taxa efetiva, com download do conteúdo codificado (`.huf`) e restaurado.
+### Relatório da missão
 
-- **Huffman canônico e benchmarks:** deriva códigos canônicos a partir dos
-  comprimentos, serializa a tabela (`HUC`) e compara com a árvore explícita em
-  cabeçalho, payload, tempo e memória (`npm run bench:canonical`), incluindo os
-  casos em que o overhead supera a economia.
+![Relatório final com métricas de compressão e atraso](docs/images/relatorio-missao.png)
 
-## Algoritmos estudados
+### Laboratório
 
-### Codificação de Huffman
+![Laboratório aplicando o codec Huffman a um texto](docs/images/modo-laboratorio.png)
 
-Uma min-heap mantém os nós ativos. A cada iteração, os dois nós de menor peso são
-removidos e combinados até restar uma única árvore. Para um alfabeto com `σ`
-símbolos, a construção custa `O(σ log σ)`; contar frequências e processar a
-entrada custa `O(n)`.
+## Funcionalidades
 
-O jogador poderá sair da escolha prescrita pelo algoritmo e comparar o
-comprimento médio da árvore resultante com o código ótimo.
+- quatro missões oficiais com progressão salva no navegador;
+- construção manual da árvore de Huffman com min-heap e comparação com a
+  referência ótima;
+- codec binário real, com serialização da árvore, cabeçalho, payload e padding;
+- representação alternativa por Huffman canônico e benchmark reproduzível;
+- escalonador interativo EDD, métricas de atraso e gráficos de Gantt;
+- relatório calculado a partir das escolhas do jogador;
+- laboratório para comprimir textos e arquivos e restaurar contêineres `.huf`;
+- editor para importar, validar, exportar e jogar cenários em JSON;
+- execução inteiramente local e publicação estática no GitHub Pages.
 
-### Earliest Due Date
+## Problema e algoritmos
 
-Os pacotes são ordenados por deadlines não decrescentes. Para o modelo da missão
-— um único canal, todos os pacotes disponíveis no instante inicial e transmissão
-sem preempção — essa ordem minimiza o maior atraso.
+A telemetria é dividida em pacotes com conteúdos, tamanhos e prazos diferentes.
+O canal até a Terra tem largura de banda limitada. A aplicação conecta duas
+decisões:
 
-A compressão modifica as durações e o atraso obtido, mas não modifica a regra de
-ordenação ótima por deadline.
+1. **Huffman:** constrói um código de prefixo a partir das frequências. Para uma
+   entrada com `n` símbolos e alfabeto de tamanho `σ`, contar frequências custa
+   `O(n)` e construir a árvore com a min-heap custa `O(σ log σ)`.
+2. **EDD:** ordena os pacotes por prazo não decrescente em `O(m log m)`. No
+   modelo adotado — um canal, todos os pacotes disponíveis em `t = 0` e sem
+   preempção — essa ordem minimiza o maior atraso.
 
-## Fluxo da missão
-
-```mermaid
-flowchart LR
-    A[Briefing] --> B[Sala de controle]
-    B --> C[Telemetria]
-    C --> D[Terminal Huffman]
-    D --> E[Compressão]
-    E --> F[Escalonador EDD]
-    F --> G[Transmissão]
-    G --> H[Relatório da missão]
-```
-
-## Tecnologias
-
-- **React** — interface e composição das telas;
-- **TypeScript** — algoritmos, domínio e mecânicas;
-- **Vite** — desenvolvimento e geração dos arquivos estáticos;
-- **HTML, CSS e SVG** — cenário, terminais e visualizações;
-- **Vitest e Testing Library** — testes unitários e de interface;
-- **GitHub Actions e GitHub Pages** — integração, verificação e publicação.
-
-Min-heap, Huffman, codec binário e escalonamento serão implementados pela dupla,
-sem bibliotecas que resolvam esses algoritmos.
+A compressão altera as durações das transmissões, mas não altera a regra de
+ordenação EDD. A fundamentação, as complexidades e as limitações estão no
+[relatório técnico](docs/relatorio.md).
 
 ## Arquitetura
 
-A aplicação não possui servidor. Todas as operações são executadas no navegador,
-e nenhum arquivo do usuário precisa ser enviado para serviços externos.
+A aplicação não possui backend. Algoritmos, simulação, persistência do progresso
+e leitura de arquivos executam no navegador; nenhum dado do usuário é enviado a
+um serviço externo.
 
 ```text
 src/
-├── algorithms/     # heap, Huffman, codec e EDD
-├── domain/         # entidades e regras da missão
-├── game/           # estado, fluxo e simulação
-├── components/     # sala e terminais React
-├── data/           # definição das missões
-├── infra/          # download, leitura de arquivos e armazenamento local
-├── assets/         # imagens, ícones e sons
-└── styles/         # identidade visual e acessibilidade
+├── algorithms/  # min-heap, Huffman, codecs e EDD
+├── domain/      # validação, transmissão, relatório e laboratório
+├── game/        # comandos, estado, progressão e seletores
+├── components/  # sala e terminais React
+├── data/        # quatro missões oficiais
+├── infra/       # localStorage, leitura e download de arquivos
+├── styles/      # identidade visual e responsividade
+└── test/        # utilitários e fixtures de teste
 ```
 
-As regras completas de arquitetura, fórmulas, decisões técnicas, testes e roadmap
-estão em [docs/estrutura-do-projeto.md](docs/estrutura-do-projeto.md).
+Veja a [estrutura detalhada do projeto](docs/estrutura-do-projeto.md).
 
-## Execução local
+## Como executar a partir de um clone
 
-Requer Node 22 (`.nvmrc`):
+Pré-requisito: **Node.js 22** (a versão esperada está em `.nvmrc`).
 
 ```bash
-npm install
+git clone https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2.git
+cd G10_Greedy_PA-26.2
+npm ci
 npm run dev
 ```
 
-Verificações:
+O Vite mostra no terminal o endereço local, normalmente
+`http://localhost:5173/`.
+
+### Verificações e build de produção
 
 ```bash
-npm run test
 npm run lint
 npm run typecheck
+npm run test
 npm run format:check
 npm run build
+npm run preview
 ```
 
-Benchmark reproduzível (semente fixa; imprime tabelas em Markdown):
+O build estático é gerado em `dist/`. Em produção, o Vite usa a base
+`/G10_Greedy_PA-26.2/`, compatível com o caminho do repositório no GitHub Pages.
+
+Benchmark reproduzível das representações por árvore e canônica:
 
 ```bash
 npm run bench:canonical
 ```
 
-## Princípios de qualidade
+## Documentação
 
-- lógica algorítmica independente do React;
-- métricas calculadas a partir dos dados efetivamente codificados;
-- round-trip obrigatório: `decode(encode(dados)) === dados`;
-- cabeçalho e padding visíveis nas métricas de compressão;
-- suporte a teclado e preferência por movimento reduzido;
-- commits graduais e participação dos dois integrantes.
+- [Relatório técnico e resultados](docs/relatorio.md)
+- [Roteiro da apresentação](docs/roteiro-video.md)
+- [Estrutura e arquitetura](docs/estrutura-do-projeto.md)
+- [Formato binário Huffman](docs/formato-huffman.md)
+- [Huffman canônico e benchmarks](docs/huffman-canonico.md)
+- [Escalonamento EDD](docs/escalonamento-edd.md)
+- [Formato das missões, progressão e editor](docs/formato-missao.md)
+- [Modo laboratório](docs/modo-laboratorio.md)
+- [Validação integrada do MVP](docs/validacao-mvp.md)
+
+## Qualidade e entrega contínua
+
+Pull requests e atualizações da branch principal executam lint, testes e build
+no GitHub Actions. O deploy do GitHub Pages só ocorre após a conclusão dessas
+verificações. A suíte cobre os algoritmos, codecs, domínio, persistência e
+componentes; também verifica o round-trip das missões oficiais e compara EDD
+com todas as 720 ordens da missão principal.
 
 ## Autoria
 
