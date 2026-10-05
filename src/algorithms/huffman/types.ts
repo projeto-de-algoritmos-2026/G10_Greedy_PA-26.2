@@ -64,3 +64,21 @@ export interface EncodedHuffmanData {
   readonly payload: Uint8Array;
   readonly metrics: HuffmanMetrics;
 }
+
+/** Campos lidos do cabeçalho de um arquivo contêiner, antes de qualquer decodificação. */
+export interface HuffmanHeaderFields {
+  readonly formatVersion: number;
+  readonly originalByteLength: number;
+  readonly payloadBitLength: number;
+  readonly paddingBits: number;
+  readonly headerByteLength: number;
+  /** Bytes ocupados somente pela árvore serializada em pré-ordem. */
+  readonly treeByteLength: number;
+}
+
+/** Arquivo único `cabeçalho ‖ payload`, já separado em suas duas partes. */
+export interface HuffmanContainer {
+  readonly header: Uint8Array;
+  readonly payload: Uint8Array;
+  readonly declared: HuffmanHeaderFields;
+}

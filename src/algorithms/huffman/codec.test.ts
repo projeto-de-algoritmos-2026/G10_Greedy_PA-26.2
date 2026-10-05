@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { generateByteCorpus } from '../../test/random';
 import type { ByteDistribution } from '../../test/random';
 import { buildHuffmanTree } from './buildTree';
-import { decode, encode } from './codec';
+import { decode, encode, packContainer, unpackContainer } from './codec';
 import { InvalidHuffmanTreeError } from './errors';
 import type { HuffmanCodecErrorCode } from './errors';
 import type { EncodedHuffmanData, HuffmanInternalNode, HuffmanLeaf } from './types';
@@ -216,5 +216,67 @@ describe('codec Huffman', () => {
     const valid = manualThreeSymbolTree();
     const invalid = Object.freeze({ ...valid, weight: valid.weight + 1 });
     expect(() => encode(Uint8Array.of(0), invalid)).toThrow(InvalidHuffmanTreeError);
+  });
+});
+
+describe('contêiner Huffman', () => {
+  it.each(roundTripCases)(
+    'separa cabeçalho e payload sem delimitador para $name',
+    ({ alphabet, length, distribution, seed }) => {
+      const data = generateByteCorpus({ alphabet, length, distribution, seed });
+      const encoded = encode(data);
+      const container = packContainer(encoded);
+      const unpacked = unpackContainer(container);
+
+      expect(container).toHaveLength(encoded.metrics.totalByteLength);
+      expect(unpacked.header).toEqual(encoded.header);
+      expect(unpacked.payload).toEqual(encoded.payload);
+      expect(decode(unpacked)).toEqual(data);
+    },
+  );
+
+  it('expõe os campos declarados no cabeçalho', () => {
+    const data = Uint8Array.from([66, 65, 78, 65, 78, 65]);
+    const encoded = encode(data);
+    const { declared } = unpackContainer(packContainer(encoded));
+
+    expect(declared).toEqual({
+      formatVersion: 1,
+      originalByteLength: data.length,
+      payloadBitLength: encoded.metrics.payloadBitLength,
+      paddingBits: encoded.metrics.paddingBitLength,
+      headerByteLength: encoded.header.length,
+      treeByteLength: encoded.header.length - HEADER_TREE_OFFSET,
+    });
+  });
+
+  it('preserva entrada vazia e alfabeto unitário', () => {
+    for (const data of [new Uint8Array(), Uint8Array.from({ length: 13 }, () => 42)]) {
+      expect(decode(unpackContainer(packContainer(encode(data))))).toEqual(data);
+    }
+  });
+
+  it('rejeita arquivos que não são contêineres válidos', () => {
+    const container = packContainer(encode(Uint8Array.of(0, 1, 0, 2)));
+
+    expectCodecError(() => unpackContainer(Uint8Array.of(1, 2, 3, 4)), 'INVALID_MAGIC');
+    expectCodecError(() => unpackContainer(new Uint8Array()), 'TRUNCATED_HEADER');
+    expectCodecError(() => unpackContainer(container.slice(0, 15)), 'TRUNCATED_HEADER');
+
+    const badVersion = container.slice();
+    badVersion[3] = 2;
+    expectCodecError(() => unpackContainer(badVersion), 'UNSUPPORTED_VERSION');
+  });
+
+  it('detecta payload truncado ou com bytes excedentes ao decodificar', () => {
+    const container = packContainer(encode(generateByteCorpus(roundTripCases[1]!)));
+    const extended = new Uint8Array(container.length + 1);
+    extended.set(container);
+
+    expectCodecError(
+      () => decode(unpackContainer(container.slice(0, -1))),
+      'PAYLOAD_LENGTH_MISMATCH',
+    );
+    expectCodecError(() => decode(unpackContainer(extended)), 'PAYLOAD_LENGTH_MISMATCH');
   });
 });
