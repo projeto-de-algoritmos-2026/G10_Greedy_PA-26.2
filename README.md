@@ -25,6 +25,7 @@ está prevista para **5 de outubro de 2026**.
 - [Escalonamento EDD e métricas de atraso](docs/escalonamento-edd.md)
 - [Formato de missão, progressão e editor de cenários](docs/formato-missao.md)
 - [Modo laboratório](docs/modo-laboratorio.md)
+- [Validação integrada do MVP](docs/validacao-mvp.md)
 
 ## Problema
 
