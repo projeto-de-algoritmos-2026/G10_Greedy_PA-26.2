@@ -40,7 +40,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['vite.config.ts'],
+    files: ['vite.config.ts', 'scripts/**/*.ts'],
     languageOptions: { globals: globals.node },
   },
   // Camadas (docs/estrutura-do-projeto.md §7): components -> game -> domain -> algorithms.

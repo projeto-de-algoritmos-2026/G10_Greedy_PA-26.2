@@ -59,6 +59,12 @@ arquivo pelo tamanho declarado sem alocar a saída. A consistência do payload �
 comprimento, padding e códigos completos — continua sendo verificada por
 `decode`.
 
+## Alternativa canônica
+
+Uma representação que grava só os comprimentos de código (formato `HUC`) e a
+comparação de custo com a árvore explícita estão em
+[Huffman canônico e benchmarks](huffman-canonico.md).
+
 ## Casos extremos e validação
 
 - entrada vazia usa árvore vazia e payload vazio;

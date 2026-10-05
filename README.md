@@ -22,6 +22,7 @@ está prevista para **5 de outubro de 2026**.
 - [Milestones](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/milestones)
 - [Estrutura e arquitetura do projeto](docs/estrutura-do-projeto.md)
 - [Formato binário Huffman](docs/formato-huffman.md)
+- [Huffman canônico e benchmarks](docs/huffman-canonico.md)
 - [Escalonamento EDD e métricas de atraso](docs/escalonamento-edd.md)
 - [Formato de missão, progressão e editor de cenários](docs/formato-missao.md)
 - [Modo laboratório](docs/modo-laboratorio.md)
@@ -67,7 +68,10 @@ O primeiro lançamento terá uma missão completa e reproduzível com:
   inteiramente no navegador, exibindo frequências, árvore, cabeçalho, padding e
   taxa efetiva, com download do conteúdo codificado (`.huf`) e restaurado.
 
-Huffman canônico continua no roadmap.
+- **Huffman canônico e benchmarks:** deriva códigos canônicos a partir dos
+  comprimentos, serializa a tabela (`HUC`) e compara com a árvore explícita em
+  cabeçalho, payload, tempo e memória (`npm run bench:canonical`), incluindo os
+  casos em que o overhead supera a economia.
 
 ## Algoritmos estudados
 
@@ -152,6 +156,12 @@ npm run lint
 npm run typecheck
 npm run format:check
 npm run build
+```
+
+Benchmark reproduzível (semente fixa; imprime tabelas em Markdown):
+
+```bash
+npm run bench:canonical
 ```
 
 ## Princípios de qualidade

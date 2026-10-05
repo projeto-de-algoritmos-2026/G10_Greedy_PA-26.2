@@ -30,7 +30,8 @@ interface DecodedHeader {
   readonly root: HuffmanNode | null;
 }
 
-function pushUint32(target: number[], value: number): void {
+/** Compartilhada com o codec canônico, que usa os mesmos campos numéricos de 32 bits. */
+export function pushUint32(target: number[], value: number): void {
   if (!Number.isSafeInteger(value) || value < 0 || value > UINT32_MAX) {
     throw new HuffmanCodecError(
       'SIZE_LIMIT_EXCEEDED',
@@ -201,7 +202,8 @@ function parseHeader(header: Uint8Array): DecodedHeader {
   return fields;
 }
 
-function createMetrics(
+/** Compartilhada com o codec canônico para que as métricas sigam a mesma definição. */
+export function createMetrics(
   originalByteLength: number,
   headerByteLength: number,
   payloadBitLength: number,
