@@ -211,4 +211,39 @@ describe('compareToEarliestDueDate', () => {
       expect(compareToEarliestDueDate(order).maxLatenessDelta).toBeGreaterThanOrEqual(0);
     }
   });
+
+  it('não deixa o arredondamento de durações fracionárias criar uma diferença para EDD', () => {
+    // Durações bits ÷ banda (banda 6): as duas ordens têm o mesmo T_max exato, 407/6, mas a
+    // soma em ponto flutuante em ordens diferentes diverge no último bit.
+    const bits = (id: string, bitLength: number, dueDate: number) =>
+      packet(id, bitLength / 6, dueDate);
+    const packets = [bits('p0', 118, 1), bits('p1', 139, 7), bits('p2', 140, 5), bits('p3', 77, 8)];
+    const comparison = compareToEarliestDueDate(packets, { initialTime: 432 / 6 });
+
+    expect(comparison.referenceEdd.packets.map((p) => p.id)).toEqual(['p0', 'p2', 'p1', 'p3']);
+    expect(comparison.maxLatenessDelta).toBe(0);
+    expect(comparison.matchesReferenceMaxLateness).toBe(true);
+  });
+
+  it('nunca produz delta negativo com durações fracionárias', () => {
+    const bandwidths = [3, 6, 7, 10, 12];
+    for (const bandwidth of bandwidths) {
+      const packets = [5, 2, 7, 1, 4].map((bitLength, index) =>
+        packet(`p${index}`, (bitLength * 17 + index) / bandwidth, [8, 3, 20, 5, 12][index] ?? 0),
+      );
+      for (const order of permutations(packets)) {
+        const comparison = compareToEarliestDueDate(order, { initialTime: 432 / bandwidth });
+        expect(comparison.maxLatenessDelta).toBeGreaterThanOrEqual(0);
+      }
+    }
+  });
+});
+
+describe('scheduleInGivenOrder com durações fracionárias', () => {
+  it('considera no prazo o pacote que termina exatamente no prazo', () => {
+    // 0.1 + 0.2 vale 0.30000000000000004 em ponto flutuante; o pacote não está atrasado.
+    const schedule = scheduleInGivenOrder([packet('a', 0.1, 5), packet('b', 0.2, 0.3)]);
+    expect(schedule.packets[1]?.lateness).toBe(0);
+    expect(schedule.maxLateness).toBe(0);
+  });
 });

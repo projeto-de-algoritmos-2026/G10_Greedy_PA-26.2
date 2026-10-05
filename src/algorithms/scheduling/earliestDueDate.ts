@@ -32,6 +32,27 @@ function readInitialTime(options: ScheduleOptions): number {
 }
 
 /**
+ * Tolerância relativa para comparar instantes. As durações são `bits ÷ banda` e, quando a banda
+ * não é potência de dois, a soma em ponto flutuante depende da ordem das parcelas: dois
+ * cronogramas com o mesmo `T_max` exato podem diferir no último bit. Nove casas decimais ficam
+ * muito acima desse erro e muito abaixo de qualquer diferença real entre cronogramas.
+ */
+const RELATIVE_TIME_TOLERANCE = 1e-9;
+
+/**
+ * Calcula `a - b` tratando como zero as diferenças que são apenas erro de arredondamento.
+ * `scale` é a ordem de grandeza dos instantes somados para chegar a `a` e `b`.
+ */
+export function timeDifference(
+  a: number,
+  b: number,
+  scale: number = Math.max(Math.abs(a), Math.abs(b)),
+): number {
+  const difference = a - b;
+  return Math.abs(difference) <= RELATIVE_TIME_TOLERANCE * Math.max(1, scale) ? 0 : difference;
+}
+
+/**
  * Ordena os pacotes por prazo (`dueDate`) não decrescente — Earliest Due Date, também
  * apresentada nos slides da disciplina como Earliest Deadline First (EDD/EDF).
  *
@@ -61,7 +82,7 @@ export function scheduleInGivenOrder(
   const scheduled: ScheduledPacket[] = packets.map((packet) => {
     const startTime = time;
     const completionTime = startTime + packet.processingTime;
-    const lateness = Math.max(0, completionTime - packet.dueDate);
+    const lateness = Math.max(0, timeDifference(completionTime, packet.dueDate));
     time = completionTime;
     maxLateness = Math.max(maxLateness, lateness);
     return Object.freeze({ ...packet, startTime, completionTime, lateness });

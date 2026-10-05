@@ -21,7 +21,7 @@ export function SchedulerTerminal({ state, report, dispatch }: SchedulerTerminal
     referenceEdd.totalCompletionTime,
     ...manual.packets.map((packet) => packet.dueDate),
   );
-  const delta = manual.maxLateness - referenceEdd.maxLateness;
+  const delta = report.compressed.schedules.maxLatenessDelta;
   const isEddOrder = order.every((id, index) => id === referenceEdd.packets[index]?.id);
 
   const setOrder = (packetIds: readonly string[]) =>
