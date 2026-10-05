@@ -5,6 +5,7 @@ import { ControlRoom } from './ControlRoom';
 import { HuffmanTerminal } from './HuffmanTerminal';
 import { MissionReportTerminal } from './MissionReportTerminal';
 import { SchedulerTerminal } from './SchedulerTerminal';
+import { TelemetryTerminal } from './TelemetryTerminal';
 import { TERMINALS } from './terminals';
 import type { TerminalId } from './terminals';
 
@@ -109,22 +110,7 @@ export function MissionView({
             <SchedulerTerminal state={state} report={report} dispatch={dispatch} />
           )}
           {terminal.id === 'telemetry' && (
-            <section className="terminal">
-              <p className="terminal-code" aria-hidden="true">
-                TRM-01 // SENSOR ARRAY
-              </p>
-              <h2>Telemetria</h2>
-              <p>Terminal de investigação ainda não implementado.</p>
-              {state.phase === 'investigation' && (
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={() => dispatch({ type: 'FINISH_INVESTIGATION' })}
-                >
-                  Concluir investigação
-                </button>
-              )}
-            </section>
+            <TelemetryTerminal mission={mission} state={state} dispatch={dispatch} />
           )}
           {terminal.id === 'huffman' && (
             <HuffmanTerminal

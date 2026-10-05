@@ -253,6 +253,38 @@ describe('App', () => {
     expect(screen.queryByRole('heading', { name: 'Relatório da missão' })).not.toBeInTheDocument();
   });
 
+  it('apresenta a telemetria recebida no terminal de investigação', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Iniciar missão' }));
+    await user.click(screen.getByRole('button', { name: /Telemetria/ }));
+
+    expect(screen.queryByText(/ainda não implementado/)).not.toBeInTheDocument();
+
+    // Missão 1: 362 símbolos de 8 bits em uma banda de 16 bits por unidade de tempo.
+    const link = screen.getByRole('group', { name: 'Enlace e volume recebido' });
+    expect(within(link).getByText('16 bits/u.t.')).toBeVisible();
+    expect(within(link).getByText('2896 bits')).toBeVisible();
+    expect(within(link).getByText('181 u.t.')).toBeVisible();
+
+    const packets = screen.getByRole('table', { name: /Pacotes recebidos/ });
+    expect(within(packets).getAllByRole('row')).toHaveLength(7);
+    const sync = within(packets).getByRole('row', { name: /^sync/ });
+    expect(within(sync).getByText('400 bits')).toBeVisible();
+    expect(within(sync).getByText('25')).toBeVisible();
+    expect(within(sync).getByText('8')).toBeVisible();
+
+    const symbols = screen.getByRole('table', { name: /Ocorrências de cada símbolo/ });
+    const nominal = within(symbols).getByRole('row', { name: /nominal/ });
+    expect(within(nominal).getByText('194')).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Concluir investigação' }));
+    expect(screen.queryByRole('button', { name: 'Concluir investigação' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Investigação concluída/)).toBeVisible();
+    expect(screen.getByRole('table', { name: /Pacotes recebidos/ })).toBeVisible();
+  });
+
   it('mantém o Scheduler como terminal disponível até a transmissão ser concluída', async () => {
     const user = userEvent.setup();
     render(<App />);
