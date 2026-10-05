@@ -236,8 +236,10 @@ importa React, APIs do navegador nem dados visuais.
 
 #### Infraestrutura do navegador
 
-Responsável por download, upload futuro, armazenamento local futuro e publicação
-estática. Não existe servidor de aplicação.
+Responsável por download, leitura de arquivos do usuário, armazenamento local e
+publicação estática. Não existe servidor de aplicação. As APIs do navegador
+ficam isoladas em `src/infra/`, que não importa algoritmos, domínio nem React;
+somente a interface a utiliza.
 
 ### 7.3 Estrutura planejada
 
@@ -439,6 +441,17 @@ ordem recomendada é:
 5. **Persistência e progressão:** salvar preferências e resultados localmente.
 6. **Imersão adicional:** áudio, novas ambientações e internacionalização, sempre
    mantendo alternativa acessível.
+
+Situação das expansões:
+
+| Expansão | Situação | Documentação |
+|---|---|---|
+| Modo laboratório | implementado | [modo-laboratorio.md](modo-laboratorio.md) |
+| Múltiplas missões | implementado | [formato-missao.md](formato-missao.md) |
+| Editor de cenários | implementado | [formato-missao.md](formato-missao.md) |
+| Persistência e progressão | implementado | [formato-missao.md](formato-missao.md) |
+| Huffman canônico | planejado | — |
+| Imersão adicional | planejado | — |
 
 Cada expansão deve possuir métricas e testes próprios. Novas regras de
 escalonamento — prioridades, datas de liberação ou preempção — não devem ser

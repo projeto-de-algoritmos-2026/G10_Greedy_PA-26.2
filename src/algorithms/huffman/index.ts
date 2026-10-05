@@ -5,7 +5,7 @@ export {
   buildHuffmanTreeFromFrequencies,
   validateHuffmanTree,
 } from './buildTree';
-export { encode, decode } from './codec';
+export { decode, encode, packContainer, unpackContainer } from './codec';
 export { countFrequencies } from './countFrequencies';
 export { HuffmanCodecError, InvalidFrequencyTableError, InvalidHuffmanTreeError } from './errors';
 export type {
@@ -13,6 +13,8 @@ export type {
   FrequencyTable,
   HuffmanBuildResult,
   HuffmanCodeTable,
+  HuffmanContainer,
+  HuffmanHeaderFields,
   HuffmanInternalNode,
   HuffmanLeaf,
   HuffmanMergeStep,

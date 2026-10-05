@@ -1,10 +1,9 @@
 import type { MissionDefinition } from '../domain';
-
-const repeat = (pattern: readonly number[], times: number): readonly number[] =>
-  Array.from({ length: times }, () => pattern).flat();
+import { repeat } from './payload';
 
 /** Cenário reproduzível do MVP; métricas e frequências são calculadas ao carregá-lo. */
 export const deepSpaceMission = Object.freeze({
+  schemaVersion: 1,
   id: 'deep-space-alpha',
   title: 'DeepSpace: sinal de emergência',
   briefing:

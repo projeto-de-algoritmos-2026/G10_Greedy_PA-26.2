@@ -23,6 +23,8 @@ está prevista para **5 de outubro de 2026**.
 - [Estrutura e arquitetura do projeto](docs/estrutura-do-projeto.md)
 - [Formato binário Huffman](docs/formato-huffman.md)
 - [Escalonamento EDD e métricas de atraso](docs/escalonamento-edd.md)
+- [Formato de missão, progressão e editor de cenários](docs/formato-missao.md)
+- [Modo laboratório](docs/modo-laboratorio.md)
 
 ## Problema
 
@@ -52,8 +54,19 @@ O primeiro lançamento terá uma missão completa e reproduzível com:
 - execução inteiramente local no navegador;
 - publicação no GitHub Pages.
 
-Recursos como múltiplas missões, upload de arquivos e Huffman canônico fazem
-parte do roadmap pós-MVP.
+## Expansões pós-MVP
+
+- **Múltiplas missões e progressão:** quatro missões oficiais com
+  distribuições, bandas e deadlines diferentes; concluir uma libera a seguinte.
+  O progresso e a tentativa em andamento ficam salvos no navegador, sem conta.
+- **Editor de cenários:** importa, valida e exporta missões em um schema JSON
+  versionado, recusando dados inconsistentes e regras de escalonamento fora do
+  modelo em que EDD é ótimo.
+- **Modo laboratório:** aplica o codec a texto ou arquivos do usuário,
+  inteiramente no navegador, exibindo frequências, árvore, cabeçalho, padding e
+  taxa efetiva, com download do conteúdo codificado (`.huf`) e restaurado.
+
+Huffman canônico continua no roadmap.
 
 ## Algoritmos estudados
 
@@ -113,6 +126,7 @@ src/
 ├── game/           # estado, fluxo e simulação
 ├── components/     # sala e terminais React
 ├── data/           # definição das missões
+├── infra/          # download, leitura de arquivos e armazenamento local
 ├── assets/         # imagens, ícones e sons
 └── styles/         # identidade visual e acessibilidade
 ```

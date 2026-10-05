@@ -6,4 +6,6 @@ if (typeof document !== 'undefined') {
 
   // Sem `globals: true` o Testing Library não registra o cleanup sozinho.
   afterEach(cleanup);
+  // O progresso salvo por um teste não pode definir o estado inicial do próximo.
+  afterEach(() => localStorage.clear());
 }

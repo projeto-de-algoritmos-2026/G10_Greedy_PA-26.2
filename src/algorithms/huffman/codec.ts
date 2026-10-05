@@ -4,6 +4,7 @@ import { buildHuffmanTree, validateHuffmanTree } from './buildTree';
 import { HuffmanCodecError } from './errors';
 import type {
   EncodedHuffmanData,
+  HuffmanContainer,
   HuffmanInternalNode,
   HuffmanLeaf,
   HuffmanMetrics,
@@ -13,6 +14,8 @@ import type {
 const MAGIC = Object.freeze([0x48, 0x55, 0x46]); // ASCII: HUF
 const FORMAT_VERSION = 1;
 const UINT32_MAX = 0xffff_ffff;
+/** Assinatura (3) + versão (1) + tamanho original (4) + bits úteis (4) + padding (1). */
+const FIXED_HEADER_BYTE_LENGTH = 13;
 
 const enum TreeTag {
   Empty = 0,
@@ -155,8 +158,8 @@ class HeaderReader {
   }
 }
 
-function parseHeader(header: Uint8Array): DecodedHeader {
-  const reader = new HeaderReader(header);
+/** Lê os campos do cabeçalho a partir da posição atual; não exige que os bytes terminem nele. */
+function readHeaderFields(reader: HeaderReader): DecodedHeader {
   for (const expected of MAGIC) {
     if (reader.readByte() !== expected) {
       throw new HuffmanCodecError('INVALID_MAGIC', 'O cabeçalho não começa com a assinatura HUF.');
@@ -176,12 +179,6 @@ function parseHeader(header: Uint8Array): DecodedHeader {
   const paddingBits = reader.readByte();
   const root = reader.readTree();
 
-  if (reader.position !== header.length) {
-    throw new HuffmanCodecError(
-      'TRAILING_HEADER_DATA',
-      'O cabeçalho contém bytes depois do fim da árvore.',
-    );
-  }
   if (originalByteLength > 0 && root === null) {
     throw new HuffmanCodecError('MISSING_TREE', 'Dados não vazios exigem uma árvore de Huffman.');
   }
@@ -190,6 +187,18 @@ function parseHeader(header: Uint8Array): DecodedHeader {
   }
 
   return Object.freeze({ originalByteLength, payloadBitLength, paddingBits, root });
+}
+
+function parseHeader(header: Uint8Array): DecodedHeader {
+  const reader = new HeaderReader(header);
+  const fields = readHeaderFields(reader);
+  if (reader.position !== header.length) {
+    throw new HuffmanCodecError(
+      'TRAILING_HEADER_DATA',
+      'O cabeçalho contém bytes depois do fim da árvore.',
+    );
+  }
+  return fields;
 }
 
 function createMetrics(
@@ -293,4 +302,38 @@ export function decode(encoded: Pick<EncodedHuffmanData, 'header' | 'payload'>):
     );
   }
   return output;
+}
+
+/**
+ * Junta cabeçalho e payload em um único arquivo. Nenhum separador é necessário: a árvore em
+ * pré-ordem delimita o próprio fim, então o payload começa no byte seguinte ao cabeçalho.
+ */
+export function packContainer(encoded: Pick<EncodedHuffmanData, 'header' | 'payload'>): Uint8Array {
+  const container = new Uint8Array(encoded.header.length + encoded.payload.length);
+  container.set(encoded.header, 0);
+  container.set(encoded.payload, encoded.header.length);
+  return container;
+}
+
+/**
+ * Separa um arquivo produzido por `packContainer` e expõe os campos declarados no cabeçalho.
+ * Valida somente o cabeçalho; a consistência do payload é verificada por `decode`.
+ */
+export function unpackContainer(container: Uint8Array): HuffmanContainer {
+  const reader = new HeaderReader(container);
+  const { originalByteLength, payloadBitLength, paddingBits } = readHeaderFields(reader);
+  const headerByteLength = reader.position;
+
+  return Object.freeze({
+    header: container.slice(0, headerByteLength),
+    payload: container.slice(headerByteLength),
+    declared: Object.freeze({
+      formatVersion: FORMAT_VERSION,
+      originalByteLength,
+      payloadBitLength,
+      paddingBits,
+      headerByteLength,
+      treeByteLength: headerByteLength - FIXED_HEADER_BYTE_LENGTH,
+    }),
+  });
 }

@@ -45,6 +45,20 @@ Tags usadas na serialização da árvore:
 As frequências das folhas permitem reconstruir os pesos dos nós internos. A
 topologia serializada preserva as escolhas feitas quando existem empates.
 
+## Arquivo contêiner `.huf`
+
+`packContainer(codificado)` concatena `cabeçalho ‖ payload` em um único arquivo,
+usado pelo [modo laboratório](modo-laboratorio.md) para download. Nenhum
+separador ou campo de tamanho adicional é necessário: a árvore em pré-ordem
+delimita o próprio fim, portanto o payload começa no byte seguinte ao último nó.
+
+`unpackContainer(bytes)` percorre o cabeçalho, devolve as duas partes e expõe os
+campos declarados (versão, tamanho original, bits úteis, padding, bytes do
+cabeçalho e da árvore) antes de qualquer decodificação. Isso permite recusar um
+arquivo pelo tamanho declarado sem alocar a saída. A consistência do payload —
+comprimento, padding e códigos completos — continua sendo verificada por
+`decode`.
+
 ## Casos extremos e validação
 
 - entrada vazia usa árvore vazia e payload vazio;

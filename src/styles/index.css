@@ -812,3 +812,274 @@ tbody tr:nth-child(even) {
     border: 2px solid ButtonText;
   }
 }
+
+/* Modos da aplicação: sala de controle, missões, laboratório e editor. */
+.mode-nav {
+  border-bottom: 1px solid var(--line);
+  padding-block: 0.75rem;
+}
+
+.mode-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A página atual é indicada por borda, sublinhado e aria-current, não só por cor. */
+.mode-nav button[aria-current='page'] {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: var(--surface-active);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+}
+
+label {
+  display: block;
+  margin-block: 1rem 0.4rem;
+  color: var(--accent-strong);
+  font: 700 0.78rem/1.4 var(--font-code);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+textarea,
+select,
+input[type='file'] {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  color: var(--text);
+  font: 400 0.9rem/1.5 var(--font-code);
+  background: #07101a;
+}
+
+textarea {
+  resize: vertical;
+}
+
+select {
+  min-height: 2.75rem;
+}
+
+textarea[aria-invalid='true'] {
+  border-color: var(--warn);
+}
+
+:where(textarea, select, input):focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.field-hint {
+  margin-block: 0.4rem 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+.field-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.lab-inputs,
+.editor-sources {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 2rem;
+}
+
+.lab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-block: 1.25rem;
+}
+
+.lab-rates {
+  display: grid;
+  gap: 0;
+  margin-block: 1rem;
+  border: 1px solid var(--line);
+}
+
+.lab-rates div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding: 0.55rem 0.7rem;
+}
+
+.lab-rates div:last-child {
+  border-bottom: 0;
+}
+
+.lab-rates dt {
+  color: var(--muted);
+}
+
+.lab-rates dd {
+  margin: 0;
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-hex {
+  overflow-wrap: anywhere;
+  letter-spacing: 0.04em;
+}
+
+.editor-json {
+  min-height: 16rem;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.issue-list {
+  display: grid;
+  gap: 0.4rem;
+  padding-left: 1.2rem;
+}
+
+.issue-list code,
+.order-id code {
+  color: var(--accent-strong);
+  font-family: var(--font-code);
+}
+
+tfoot td {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.mission-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-block: 1rem 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.mission-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem;
+  background: rgb(9 18 29 / 75%);
+}
+
+.mission-card[aria-current='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0.25rem 0 0 var(--accent);
+}
+
+.mission-card-locked {
+  border-style: dashed;
+}
+
+.mission-card h4 {
+  margin: 0;
+  color: var(--accent-strong);
+  font: 700 1.15rem/1.2 var(--font-display);
+}
+
+.mission-card-index {
+  color: var(--accent);
+  font-family: var(--font-code);
+}
+
+.mission-card p {
+  margin: 0;
+}
+
+.mission-card-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 0;
+  font: 700 0.76rem/1.4 var(--font-code);
+  text-transform: uppercase;
+}
+
+.mission-card-facts div {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.mission-card-facts dt {
+  color: var(--muted);
+}
+
+.mission-card-facts dd {
+  margin: 0;
+}
+
+.mission-card-status {
+  font-weight: 700;
+}
+
+.mission-card-marks {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.mission-card button {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.mission-outcome {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  border-color: var(--ok);
+}
+
+.mission-outcome p {
+  margin: 0;
+}
+
+@media (max-width: 48rem) {
+  .lab-inputs,
+  .editor-sources,
+  .mission-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 36rem) {
+  .field-row {
+    flex-direction: column;
+  }
+}
+
+@media (forced-colors: active) {
+  .mode-nav button[aria-current='page'],
+  .mission-card[aria-current='true'] {
+    border: 2px solid Highlight;
+  }
+}

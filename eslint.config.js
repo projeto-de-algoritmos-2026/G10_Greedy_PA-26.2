@@ -45,12 +45,17 @@ export default defineConfig([
   },
   // Camadas (docs/estrutura-do-projeto.md §7): components -> game -> domain -> algorithms.
   // Camada inferior nunca importa a superior; algoritmos e domínio não conhecem React.
+  // `infra` isola APIs do navegador (download, arquivos, armazenamento) e só a interface a usa.
   {
     files: ['src/algorithms/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
-        { patterns: restrictedImports(['domain', 'game', 'components', 'data'], { react: true }) },
+        {
+          patterns: restrictedImports(['domain', 'game', 'components', 'data', 'infra'], {
+            react: true,
+          }),
+        },
       ],
     },
   },
@@ -59,14 +64,27 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': [
         'error',
-        { patterns: restrictedImports(['game', 'components'], { react: true }) },
+        { patterns: restrictedImports(['game', 'components', 'infra'], { react: true }) },
       ],
     },
   },
   {
     files: ['src/game/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { patterns: restrictedImports(['components']) }],
+      'no-restricted-imports': ['error', { patterns: restrictedImports(['components', 'infra']) }],
+    },
+  },
+  {
+    files: ['src/infra/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: restrictedImports(['algorithms', 'domain', 'game', 'components', 'data'], {
+            react: true,
+          }),
+        },
+      ],
     },
   },
   prettier,

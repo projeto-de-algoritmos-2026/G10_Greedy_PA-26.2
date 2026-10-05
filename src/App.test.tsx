@@ -74,6 +74,11 @@ describe('App', () => {
     const names = ['Telemetria', 'Huffman', 'Scheduler', 'Relatório'];
     await user.tab();
     expect(screen.getByRole('link', { name: 'Pular para o conteúdo principal' })).toHaveFocus();
+    const modes = within(screen.getByRole('navigation', { name: 'Modos da aplicação' }));
+    for (const mode of ['Sala de controle', 'Missões', 'Laboratório', 'Editor de cenários']) {
+      await user.tab();
+      expect(modes.getByRole('button', { name: mode })).toHaveFocus();
+    }
     await user.tab();
     expect(screen.getByRole('button', { name: 'Iniciar missão' })).toHaveFocus();
     for (const name of names) {
