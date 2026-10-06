@@ -15,8 +15,7 @@ Universidade de Brasília — FGA, no módulo de **Algoritmos Ambiciosos**.
 
 - [Aplicação publicada no GitHub Pages](https://projeto-de-algoritmos-2026.github.io/G10_Greedy_PA-26.2/)
 - [Relatório técnico](docs/relatorio.md)
-- **Vídeo de apresentação:** link pendente de publicação após a gravação pelos
-  dois integrantes
+- [Link Video Apresentação Youtube](https://youtu.be/Baj9YF2PVUw)
 - [Roteiro do vídeo](docs/roteiro-video.md)
 - [Issues do projeto](https://github.com/projeto-de-algoritmos-2026/G10_Greedy_PA-26.2/issues)
 
